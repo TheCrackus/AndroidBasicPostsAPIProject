@@ -1,0 +1,53 @@
+# Archivos generados y compilados
+*.apk
+*.ap_
+*.aab
+*.aar
+*.dex
+*.class
+
+# Archivos de build y Gradle
+.gradle/
+build/
+*/build/
+out/
+bin/
+
+# Configuración local de SDK y credenciales
+local.properties
+signing.properties
+release-signing.properties
+*.jks
+*.keystore
+
+# Android Studio / IntelliJ IDEA
+*.iml
+.idea/caches/
+.idea/libraries/
+.idea/modules.xml
+.idea/workspace.xml
+.idea/navEditor.xml
+.idea/assetWizardSettings.xml
+.idea/tasks.xml
+.idea/shelf/
+.idea/deploymentTargetDropDown.xml
+.idea/deploymentTargetSelector.xml
+.idea/jarRepositories.xml
+.idea/compiler.xml
+
+# Compilación nativa (C/C++ NDK si aplica)
+.externalNativeBuild/
+.cxx/
+
+# Capturas y profiling de Android Studio
+captures/
+*.hprof
+
+# Archivos del sistema operativo (macOS, Windows, Linux)
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
