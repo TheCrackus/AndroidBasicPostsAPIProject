@@ -6,19 +6,23 @@
 *.dex
 *.class
 
-# Archivos de build y Gradle
+# Archivos de build, Gradle y Kotlin Daemon
 .gradle/
 build/
 */build/
 out/
 bin/
+.kotlin/
 
-# Configuración local de SDK y credenciales
+# Configuración local de SDK, credenciales y secretos
 local.properties
 signing.properties
 release-signing.properties
+secrets.properties
+*.env
 *.jks
 *.keystore
+google-services.json
 
 # Android Studio / IntelliJ IDEA
 *.iml
@@ -34,14 +38,22 @@ release-signing.properties
 .idea/deploymentTargetSelector.xml
 .idea/jarRepositories.xml
 .idea/compiler.xml
+.idea/gradle.xml
+.navigation/
+
+# Capturas, logs y profiling
+captures/
+*.hprof
+*.log
 
 # Compilación nativa (C/C++ NDK si aplica)
 .externalNativeBuild/
 .cxx/
 
-# Capturas y profiling de Android Studio
-captures/
-*.hprof
+# Otros editores e IDEs (VS Code, Vim, etc.)
+.vscode/
+*.swp
+*~
 
 # Archivos del sistema operativo (macOS, Windows, Linux)
 .DS_Store
