@@ -1,4 +1,4 @@
-package com.example.androidbasicpostsapiconsumerproject
+package com.example.androidbasicpostsapiproject
 
 import org.junit.Test
 

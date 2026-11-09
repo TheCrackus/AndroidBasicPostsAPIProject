@@ -22,5 +22,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "AndroidBasicPostsAPIConsumerProject"
+rootProject.name = "AndroidBasicPostsAPIProject"
 include(":app")

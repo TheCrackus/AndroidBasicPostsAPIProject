@@ -1,4 +1,4 @@
-package com.example.androidbasicpostsapiconsumerproject.core.network
+package com.example.androidbasicpostsapiproject.core.network
 
 sealed class NetworkResult<out T> {
     data class Success<out T>(val data: T) : NetworkResult<T>()
@@ -11,3 +11,9 @@ sealed class NetworkResult<out T> {
 
     data object Loading : NetworkResult<Nothing>()
 }
+
+data class GenericApiErrorResponse(
+    val message: String?,
+    val error: String?,
+    val statusCode: Int?
+)

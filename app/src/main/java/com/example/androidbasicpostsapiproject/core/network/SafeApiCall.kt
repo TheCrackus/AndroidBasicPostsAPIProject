@@ -1,18 +1,13 @@
-package com.example.androidbasicpostsapiconsumerproject.core.network
+package com.example.androidbasicpostsapiproject.core.network
 
 import com.google.gson.Gson
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import retrofit2.Response
 import java.io.IOException
 import java.net.SocketTimeoutException
-
-data class GenericApiErrorResponse(
-    val message: String?,
-    val error: String?,
-    val statusCode: Int?
-)
 
 suspend fun <T> safeApiCall(
     dispatcher: CoroutineDispatcher = Dispatchers.IO,
@@ -56,7 +51,7 @@ suspend fun <T> safeApiCall(
                     errorBody = rawError
                 )
             }
-        } catch (e: SocketTimeoutException) {
+        } catch (_: SocketTimeoutException) {
             NetworkResult.Error(
                 errorTitle = "Tiempo de espera agotado al conectar con el servidor Node.js."
             )
@@ -65,6 +60,8 @@ suspend fun <T> safeApiCall(
                 errorTitle = "Sin conexión con el servidor: ${e.localizedMessage ?: "Verifica que Node.js esté corriendo"}"
             )
         } catch (e: Exception) {
+            if (e is CancellationException) throw e
+
             NetworkResult.Error(
                 errorTitle = "Error inesperado: ${e.localizedMessage ?: "Excepción no identificada"}"
             )

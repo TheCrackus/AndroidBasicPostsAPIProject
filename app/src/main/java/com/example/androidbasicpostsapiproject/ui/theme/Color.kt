@@ -1,4 +1,4 @@
-package com.example.androidbasicpostsapiconsumerproject.ui.theme
+package com.example.androidbasicpostsapiproject.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
