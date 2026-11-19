@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -54,6 +55,15 @@ dependencies {
     // Inyección de dependencias
     implementation(libs.koin.android)
     implementation(libs.koin.compose)
+
+    // Compose Navigation
+    implementation(libs.androidx.navigation.compose)
+
+    // Compose lifecycle
+    implementation(libs.androidx.lifecycle.runtime.compose)
+
+    // Serialization
+    implementation(libs.kotlinx.serialization.json)
 
     testImplementation(libs.junit)
 

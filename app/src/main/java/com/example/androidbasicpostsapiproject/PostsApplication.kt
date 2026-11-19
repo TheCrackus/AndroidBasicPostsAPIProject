@@ -4,6 +4,7 @@ import android.app.Application
 import com.example.androidbasicpostsapiproject.di.dataModule
 import com.example.androidbasicpostsapiproject.di.domainModule
 import com.example.androidbasicpostsapiproject.di.networkModule
+import com.example.androidbasicpostsapiproject.di.uiModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
@@ -15,12 +16,15 @@ class PostsApplication : Application() {
 
         startKoin {
             androidLogger(Level.DEBUG)
+
             androidContext(this@PostsApplication)
+
             modules(
                 listOf(
                     networkModule,
                     dataModule,
-                    domainModule
+                    domainModule,
+                    uiModule
                 )
             )
         }

@@ -1,5 +1,7 @@
 package com.example.androidbasicpostsapiproject.di
 
+import com.example.androidbasicpostsapiproject.core.constants.BASE_URL
+import com.example.androidbasicpostsapiproject.core.constants.POST_TIME_OUT_MILLIS
 import com.example.androidbasicpostsapiproject.data.remote.api.PostsApiService
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -18,14 +20,17 @@ val networkModule = module {
     single {
         OkHttpClient.Builder()
             .addInterceptor(get<HttpLoggingInterceptor>())
-            .connectTimeout(15, TimeUnit.SECONDS)
-            .readTimeout(15, TimeUnit.SECONDS)
+            .connectTimeout(POST_TIME_OUT_MILLIS, TimeUnit.SECONDS)
+            .readTimeout(POST_TIME_OUT_MILLIS, TimeUnit.SECONDS)
             .build()
     }
 
     single {
-        // Emulator: 10.0.2.2 - PC Local host
-        val baseUrl = "http://10.0.2.2:8080/"
+        /**
+         * Emulator: 10.0.2.2 - PC Local host
+         * Change to real URL when server is deployed
+         */
+        val baseUrl = BASE_URL
 
         Retrofit.Builder()
             .baseUrl(baseUrl)

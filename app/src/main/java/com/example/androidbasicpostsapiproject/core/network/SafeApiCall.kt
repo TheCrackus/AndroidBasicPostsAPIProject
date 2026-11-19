@@ -1,5 +1,12 @@
 package com.example.androidbasicpostsapiproject.core.network
 
+import com.example.androidbasicpostsapiproject.core.constants.EMPTY_RESPONSE_ERROR_TITLE
+import com.example.androidbasicpostsapiproject.core.constants.ERROR_HTTP_PREFIX
+import com.example.androidbasicpostsapiproject.core.constants.NO_IDENTIFIED_ERROR_MESSAGE
+import com.example.androidbasicpostsapiproject.core.constants.NO_SERVER_CONNECTION_PREFIX
+import com.example.androidbasicpostsapiproject.core.constants.TIME_ERROR_MESSAGE
+import com.example.androidbasicpostsapiproject.core.constants.UNEXPECTED_ERROR_MESSAGE_PREFIX
+import com.example.androidbasicpostsapiproject.core.constants.VERIFY_NODE_JS_IS_RUNNING_ERROR_MESSAGE
 import com.google.gson.Gson
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
@@ -25,7 +32,7 @@ suspend fun <T> safeApiCall(
                 } else {
                     NetworkResult.Error(
                         code = response.code(),
-                        errorTitle = "Empty response"
+                        errorTitle = EMPTY_RESPONSE_ERROR_TITLE
                     )
                 }
             } else {
@@ -47,23 +54,23 @@ suspend fun <T> safeApiCall(
                 NetworkResult.Error(
                     code = response.code(),
                     errorTitle = parsedMessage ?: response.message()
-                        .ifBlank { "Error HTTP ${response.code()}" },
+                        .ifBlank { ERROR_HTTP_PREFIX + " ${response.code()}" },
                     errorBody = rawError
                 )
             }
         } catch (_: SocketTimeoutException) {
             NetworkResult.Error(
-                errorTitle = "Tiempo de espera agotado al conectar con el servidor Node.js."
+                errorTitle = TIME_ERROR_MESSAGE
             )
         } catch (e: IOException) {
             NetworkResult.Error(
-                errorTitle = "Sin conexión con el servidor: ${e.localizedMessage ?: "Verifica que Node.js esté corriendo"}"
+                errorTitle = NO_SERVER_CONNECTION_PREFIX + " ${e.localizedMessage ?: VERIFY_NODE_JS_IS_RUNNING_ERROR_MESSAGE}"
             )
         } catch (e: Exception) {
             if (e is CancellationException) throw e
 
             NetworkResult.Error(
-                errorTitle = "Error inesperado: ${e.localizedMessage ?: "Excepción no identificada"}"
+                errorTitle = UNEXPECTED_ERROR_MESSAGE_PREFIX + " ${e.localizedMessage ?: NO_IDENTIFIED_ERROR_MESSAGE}"
             )
         }
     }

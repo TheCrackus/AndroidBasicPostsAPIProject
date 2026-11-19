@@ -1,3 +1,23 @@
 <resources>
     <string name="app_name">AndroidBasicPostsAPIProject</string>
+    <string name="app_header_title">MessageNode</string>
+    <string name="nav_feed">Feed</string>
+    <string name="nav_logout">Logout</string>
+
+    <string name="posts_feed_title">MessageNode</string>
+
+    <string name="default_error_title">Aviso</string>
+    <string name="ok_text_button">Entendido</string>
+
+    <!-- UI Elements for Posts Dashboard -->
+    <string name="status_placeholder">Your status</string>
+    <string name="btn_update_status">UPDATE</string>
+    <string name="btn_new_post">NEW POST</string>
+    <string name="post_header_format">Posted by %1$s on %2$s</string>
+    <string name="btn_view_post">VIEW</string>
+    <string name="btn_edit_post">EDIT</string>
+    <string name="btn_delete_post">DELETE</string>
+    <string name="empty_posts_message">No hay posts disponibles</string>
+    <string name="btn_reload_posts">Cargar posts</string>
+    <string name="default_post_creator">Anónimo</string>
 </resources>
