@@ -114,7 +114,7 @@ com.example.androidbasicpostsapiproject/
 │           ├── PostsDashboardEvent.kt     # LoadPosts, DismissError, OnStatusChange, acciones de post : BaseEvent
 │           └── PostsDashboardEffect.kt    # Efectos de navegación y avisos : BaseEffect
 │
-├── MainActivity.kt                     # Activity principal con enableEdgeToEdge(), BaseContainer y PostsNavHost
+├── MainActivity.kt                     # Activity principal con enableEdgeToEdge(), PostsApp (Slot API + Light/Dark Preview) y PostsNavHost
 └── PostsApplication.kt                 # Application Class: inicializa Koin (androidLogger solo en BuildConfig.DEBUG) con los 4 módulos
 ```
 
@@ -124,19 +124,22 @@ com.example.androidbasicpostsapiproject/
 1. **Regla de Oro de Git / Control de Versiones:**
    - **NUNCA** ejecutar `git commit` o `git push` de forma automática.
    - **Siempre** consultar y pedir confirmación explícita al usuario antes de hacer cualquier commit o push, detallando los archivos afectados.
-2. **Inversión de Dependencias (SOLID):**
+2. **Regla de Oro — Alineación con Documentación Oficial de Google y Buenas Prácticas:**
+   - Todo diseño arquitectónico, implementación, refactorización, manejo de concurrencia, UI en Compose, navegación, testing y documentación debe alinearse lo más posible con las **guías y documentación oficial de Google** (Android Developers, Architecture Recommendations, Jetpack Compose API Guidelines, Kotlin Style Guide, Coroutines Best Practices, Material 3) y las mejores prácticas modernas de la industria.
+   - Ante dudas técnicas sobre APIs o patrones, consultar primero la documentación oficial de Android antes de introducir soluciones ad-hoc.
+3. **Inversión de Dependencias (SOLID):**
    - La capa `domain` es sagrada y pura Kotlin: **nunca** debe importar clases de Retrofit, Kotlinx Serialization, Android SDK o DataSources de la capa `data`.
    - `domain/repository/PostRepository.kt` define el contrato que la capa `data/repository/PostRepositoryImpl.kt` debe implementar.
-3. **Manejo de Errores con `NetworkResult<T>`:**
+4. **Manejo de Errores con `NetworkResult<T>`:**
    - La clase `NetworkResult.Error` contiene `(code: Int?, errorTitle: String?, errorBody: String?)`.
    - Todas las llamadas remotas pasan por `safeApiCall` que captura excepciones de red (`SocketTimeoutException`, `IOException`, etc.), parsea errores con `Json` de `kotlinx.serialization`, y propaga adecuadamente `CancellationException`.
    - Los repositorios devuelven `Flow<NetworkResult<T>>` emitiendo primero `NetworkResult.Loading` y ejecutándose bajo `flowOn(dispatchers.io)` mediante `DispatcherProvider` inyectado.
-4. **Mappers Obligatorios:**
+5. **Mappers Obligatorios:**
    - Nunca expongas `PostDto` a los casos de uso ni a la UI. Siempre transforma los DTOs a modelos de `domain` mediante `PostMapper.kt`.
-5. **Inyección de Dependencias (Koin):**
+6. **Inyección de Dependencias (Koin):**
    - Todo servicio, datasource, repositorio, caso de uso y ViewModel debe registrarse en `di/` mediante Koin.
    - Las pantallas obtienen sus ViewModels usando `koinViewModel()`.
-6. **Arquitectura de UI (MVI / MVVM con BaseViewModel Genérico):**
+7. **Arquitectura de UI (MVI / MVVM con BaseViewModel Genérico):**
    - **`BaseViewModel<S : BaseState, E : BaseEvent, EF : BaseEffect>`:**
      - Expone `uiState: StateFlow<S>` y `uiEffects: Flow<EF>`.
      - Mutaciones de estado mediante `updateState { copy(...) }`.
@@ -149,17 +152,23 @@ com.example.androidbasicpostsapiproject/
      - Todo consumo de `uiEffects` debe hacerse a través del helper `ObserveAsEvents` (`repeatOnLifecycle(Lifecycle.State.STARTED)`).
    - **Manejo de Errores y Overlays:**
      - Cada pantalla maneja su propio evento `DismissError` para limpiar `baseData.error = null` en el ViewModel y conectarlo a `onErrorDismiss` de `BaseScreenOverlay`.
-   - **Navegación:**
+   - **Navegación y Previews:**
      - Utiliza Type-Safe Navigation oficial con destinos `@Serializable`.
      - El `NavHost` es el único que conoce `NavHostController`; las pantallas se comunican con navegación hacia arriba mediante lambdas (*State Hoisting*).
-7. **Gestión de Textos y Constantes (Strings XML vs Constants Kotlin):**
+     - Los `@Preview` siguen la guía oficial de Jetpack Compose: previsualizan composables stateless (`*Screen`, `BaseContainer`) o el shell completo (`PostsApp` en `MainActivity.kt` vía Slot API) en funciones `private`, sin instanciar `ViewModel`/Koin ni acoplar datos falsos dentro de `PostsNavHost` o producción.
+8. **Gestión de Textos y Constantes (Strings XML vs Constants Kotlin):**
    - **Textos de UI visibles para el usuario:** Deben centralizarse en `res/values/strings.xml` y consumirse mediante `stringResource(R.string.xxx)` en los Composables. Esto asegura soporte para internacionalización (i18n), accesibilidad y modificaciones centralizadas de textos en la interfaz.
    - **Constantes Técnicas, de Red y Mapeo:** Cadenas de conexión (`BASE_URL`), timeouts, endpoints (`POST_API_ENDPOINT`), nombres de campos en DTOs para `@SerialName` (`POST_ID_DTO`), prefijos de error técnico y valores por defecto en mappers (`DEFAULT_POST_TITLE`) **deben declararse como constantes en Kotlin (`const val`)** dentro del paquete `core/constants/` (`NetworkConstants.kt`, `DataConstants.kt`, etc.).
    - **Independencia de Capas:** Las capas `domain`, `data` y `core/network` **nunca** deben usar `R.string` ni depender del `Context` de Android para obtener textos; deben consumir las constantes de Kotlin para mantener la pureza arquitectónica y facilitar las pruebas unitarias.
-8. **Centralización de Dimensiones y Constantes de UI (Cero Magic Numbers):**
+9. **Centralización de Dimensiones y Constantes de UI (Cero Magic Numbers):**
    - **Prohibido el uso de números mágicos dispersos** (`2.dp`, `16.dp`, `20.sp`, etc.) directamente en los archivos de pantallas o componentes de Compose.
    - **Centralización de Dimensiones:** Todos los valores de padding, márgenes, dimensiones de iconos/campos, espaciados de listas (`Arrangement.spacedBy`), radios de esquinas (`RoundedCornerShape`), grosores de bordes (`BorderStroke`) y elevaciones deben centralizarse en archivos de constantes dedicados (ej. `UiConstants.kt` o `Dimens.kt` en `core/constants/`).
    - Las constantes de dimensiones (`Dp`, `TextUnit`, etc.) deben poseer nombres descriptivos y semánticos (ej. `POST_CARD_PADDING`, `STATUS_INPUT_HEIGHT`, `CORNER_RADIUS_SMALL`) para garantizar coherencia en el diseño y facilitar futuras modificaciones globales.
+10. **Documentación KDoc (`/** ... */`) Estratégica y Continua:**
+    - **Documentación inmediata en cada cambio:** Al crear o modificar cualquier pieza importante o esencial del proyecto, se debe agregar o actualizar su KDoc en el mismo cambio (nunca dejarlo pendiente para después).
+    - **Criterio de alcance:** Queda a criterio técnico del agente decidir qué piezas merecen documentación, priorizando siempre componentes esenciales de arquitectura, contratos y utilidades reutilizables (`core/`, contratos de `domain/`, casos de uso, mappers, repositorios, `PostsNavHost`, ViewModels y composables públicos `*Root`/`*Screen`).
+    - **Formato estándar:** Usar KDoc en inglés (`/** ... */` con `@param`, `@return`, `@property` y referencias `[Symbol]`) explicando propósito, contrato, garantías de concurrencia/ciclo de vida y comportamientos de fallback.
+    - **Sin ruido:** Evitar KDoc redundante en código trivial o getters autodescriptivos; los `TODO` internos dentro de bloques de código deben usar `// TODO:` y nunca `/** ... */`.
 
 ---
 
@@ -208,6 +217,10 @@ com.example.androidbasicpostsapiproject/
   - Eliminación del doble fallback de `creator` en `PostMapper.kt` (normalizando `creator` e `imageUrl` vacíos a `null` para que la UI resuelva `R.string.default_post_creator` localizable) y remoción de `DEFAULT_POST_CREATOR` en `DataConstants.kt`.
   - Extracción de `interface BaseEffect` a su propio archivo `core/ui/state/BaseEffect.kt`.
   - Eliminación del recurso sin uso `posts_feed_title` en `res/values/strings.xml`.
+- [x] **Previews del App Shell y Documentación KDoc estratégica:**
+  - Extracción del composable `PostsApp` (patrón Slot API de Compose) en `MainActivity.kt` con `PostsAppPreview` (Light y Dark con `showSystemUi = true`) y `@PreviewLightDark` en `BaseContainer.kt`, siguiendo las guías oficiales de Compose para Previews sin acoplar `ViewModel`/Koin.
+  - Documentación KDoc (`/** ... */`) agregada en toda la infraestructura `core/` (`DispatcherProvider`, `NetworkResult`, `safeApiCall`, `formatPostDate`, `BaseContainer`, `BaseScreenOverlay`, `ObserveAsEvents`, `BaseState`/`BaseData`, `BaseEvent`, `BaseEffect`, `BaseError`, `BaseViewModel`) y puntos clave (`MainActivity`/`PostsApp`, `PostsNavHost`, `PostsDashboardRoot`/`PostsDashboardScreen`, `PostsDashboardViewModel`, `PostMapper`, `PostRepository`, `GetPostsUseCase`, `PostRepositoryImpl`).
+  - Incorporación de la Regla de Oro de alineación con la documentación oficial de Google y estándares KDoc/Previews en `AGENTS.md`.
 
 ---
 

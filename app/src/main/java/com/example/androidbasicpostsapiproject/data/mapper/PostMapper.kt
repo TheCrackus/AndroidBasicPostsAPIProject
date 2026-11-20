@@ -6,6 +6,14 @@ import com.example.androidbasicpostsapiproject.data.remote.model.PostDto
 import com.example.androidbasicpostsapiproject.data.remote.model.PostsResponseDto
 import com.example.androidbasicpostsapiproject.domain.model.Post
 
+/**
+ * Maps a network [PostDto] into a pure domain [Post].
+ *
+ * Normalization rules:
+ * - Blank or missing `title` / `content` fall back to [DEFAULT_POST_TITLE] / [DEFAULT_POST_CONTENT].
+ * - Blank `creator` and `imageUrl` are normalized to `null` so the UI layer can provide localized
+ *   fallbacks (e.g. `R.string.default_post_creator`) or hide optional media cleanly.
+ */
 fun PostDto.toDomain(): Post {
     return Post(
         id = this._id.orEmpty(),
@@ -17,6 +25,8 @@ fun PostDto.toDomain(): Post {
     )
 }
 
+/** Maps a list of [PostDto] items to domain [Post] models. */
 fun List<PostDto>.toDomain(): List<Post> = map { it.toDomain() }
 
+/** Maps a wrapped [PostsResponseDto] envelope to its domain list of [Post] models. */
 fun PostsResponseDto.toDomain(): List<Post> = this.posts.orEmpty().toDomain()

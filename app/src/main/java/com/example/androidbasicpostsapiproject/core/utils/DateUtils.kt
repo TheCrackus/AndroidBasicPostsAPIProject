@@ -3,6 +3,16 @@ package com.example.androidbasicpostsapiproject.core.utils
 import java.text.SimpleDateFormat
 import java.util.Locale
 
+/**
+ * Formats an ISO-8601 post timestamp (e.g. `"2026-11-18T10:00:00.000Z"`) into a compact
+ * `"dd/MM/yyyy"` date string for UI display.
+ *
+ * Returns `"Invalid Date"` when [dateString] is blank, and falls back to the original
+ * [dateString] if parsing fails.
+ *
+ * @param dateString Raw timestamp string received from the backend.
+ * @return Formatted `"dd/MM/yyyy"` string, `"Invalid Date"` if blank, or [dateString] on error.
+ */
 fun formatPostDate(dateString: String): String {
     if (dateString.isBlank()) return "Invalid Date"
     return try {

@@ -22,6 +22,23 @@ private val defaultNetworkJson = Json {
     coerceInputValues = true
 }
 
+/**
+ * Executes a Retrofit suspend [apiCall] safely on [dispatcher] and maps the HTTP response or any
+ * thrown exception into a [NetworkResult].
+ *
+ * Handles:
+ * - Successful 2xx responses with a non-null body -> [NetworkResult.Success].
+ * - Successful 2xx responses with a null body -> [NetworkResult.Error].
+ * - Non-2xx HTTP responses -> parses [GenericApiErrorResponse] via [json] with HTTP fallback.
+ * - [SocketTimeoutException] and [IOException] -> descriptive [NetworkResult.Error].
+ * - Structured concurrency -> rethrows [CancellationException] so parent scopes cancel cleanly.
+ *
+ * @param T Expected deserialized response body type.
+ * @param dispatcher [CoroutineDispatcher] on which [apiCall] is executed (defaults to [Dispatchers.IO]).
+ * @param json Configured [Json] instance used to parse backend error payloads.
+ * @param apiCall Suspending lambda performing the Retrofit request.
+ * @return [NetworkResult.Success] with the body or [NetworkResult.Error] describing the failure.
+ */
 suspend fun <T> safeApiCall(
     dispatcher: CoroutineDispatcher = Dispatchers.IO,
     json: Json = defaultNetworkJson,

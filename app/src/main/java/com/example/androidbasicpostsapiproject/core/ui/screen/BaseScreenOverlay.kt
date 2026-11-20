@@ -13,6 +13,17 @@ import androidx.compose.ui.res.stringResource
 import com.example.androidbasicpostsapiproject.R
 import com.example.androidbasicpostsapiproject.core.ui.state.BaseData
 
+/**
+ * Shared screen wrapper that layers common loading and error UI over [content] based on
+ * [baseData].
+ *
+ * Displays a centered [CircularProgressIndicator] when [BaseData.isLoading] is `true`, and an
+ * [AlertDialog] when [BaseData.error] is non-null.
+ *
+ * @param baseData Common loading and error state for the wrapped screen.
+ * @param onErrorDismiss Callback invoked when the user dismisses or confirms the error dialog.
+ * @param content Underlying stateless screen content.
+ */
 @Composable
 fun BaseScreenOverlay(
     baseData: BaseData,

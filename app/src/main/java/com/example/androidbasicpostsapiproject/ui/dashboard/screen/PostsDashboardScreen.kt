@@ -46,6 +46,18 @@ import com.example.androidbasicpostsapiproject.ui.dashboard.state.PostsDashboard
 import com.example.androidbasicpostsapiproject.ui.theme.AndroidBasicPostsAPIProjectTheme
 import org.koin.androidx.compose.koinViewModel
 
+/**
+ * Stateful entry point for the posts dashboard destination.
+ *
+ * Obtains [PostsDashboardViewModel] via Koin, collects [PostsDashboardViewModel.uiState] with
+ * lifecycle awareness, observes one-off navigation effects through [ObserveAsEvents], and
+ * delegates rendering to the stateless [PostsDashboardScreen].
+ *
+ * @param viewModel Feature ViewModel scoped to this navigation destination.
+ * @param onNavigateToCreate Callback triggered when the user requests creating a new post.
+ * @param onNavigateToDetail Callback triggered with the selected post ID to view its details.
+ * @param onNavigateToEdit Callback triggered with the selected post ID to edit it.
+ */
 @Composable
 fun PostsDashboardRoot(
     viewModel: PostsDashboardViewModel = koinViewModel(),
@@ -72,6 +84,17 @@ fun PostsDashboardRoot(
     )
 }
 
+/**
+ * Stateless presentation composable for the MessageNode posts dashboard.
+ *
+ * Renders the status input bar, new-post CTA, and scrollable feed (or empty state) wrapped in
+ * [BaseScreenOverlay] for loading and error handling. Designed to be independently previewable and
+ * UI-testable without a ViewModel or DI graph.
+ *
+ * @param uiState Current immutable snapshot of the dashboard UI state.
+ * @param onAction Dispatcher callback invoked for every user [PostsDashboardEvent].
+ * @param modifier [Modifier] applied to the feed [LazyColumn].
+ */
 @Composable
 fun PostsDashboardScreen(
     uiState: PostsDashboardState,

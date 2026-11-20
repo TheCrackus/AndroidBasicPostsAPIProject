@@ -15,9 +15,21 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.example.androidbasicpostsapiproject.R
+import com.example.androidbasicpostsapiproject.ui.theme.AndroidBasicPostsAPIProjectTheme
 
+/**
+ * Top-level application container providing the Material 3 [Scaffold] and the branded
+ * MessageNode [TopAppBar].
+ *
+ * Automatically applies the scaffold's `innerPadding` to [content] so child destinations render
+ * cleanly below the app bar and respect system edge-to-edge insets.
+ *
+ * @param modifier [Modifier] applied to the root [Scaffold].
+ * @param content Main screen or navigation host rendered inside the scaffold body.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BaseContainer(
@@ -78,6 +90,22 @@ fun BaseContainer(
                 .padding(paddingValues = innerPadding)
         ) {
             content()
+        }
+    }
+}
+
+@PreviewLightDark
+@Composable
+private fun BaseContainerPreview() {
+    AndroidBasicPostsAPIProjectTheme {
+        BaseContainer(
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            Text(
+                text = stringResource(id = R.string.app_header_title),
+                modifier = Modifier.padding(all = 16.dp),
+                color = MaterialTheme.colorScheme.onBackground,
+            )
         }
     }
 }

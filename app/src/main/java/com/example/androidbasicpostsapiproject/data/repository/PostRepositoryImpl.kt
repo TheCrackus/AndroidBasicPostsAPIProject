@@ -10,6 +10,15 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 
+/**
+ * Default [PostRepository] implementation backed by [PostRemoteDataSource].
+ *
+ * Emits [NetworkResult.Loading] before querying the remote source, maps DTO envelopes to pure
+ * domain models via [toDomain], and executes upstream work on [DispatcherProvider.io].
+ *
+ * @param remoteDataSource Remote data source executing API requests.
+ * @param dispatchers Injectable [DispatcherProvider] controlling upstream execution context.
+ */
 class PostRepositoryImpl(
     private val remoteDataSource: PostRemoteDataSource,
     private val dispatchers: DispatcherProvider,

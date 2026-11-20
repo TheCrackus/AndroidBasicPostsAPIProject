@@ -9,6 +9,14 @@ import com.example.androidbasicpostsapiproject.domain.usecase.GetPostsUseCase
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
+/**
+ * ViewModel for the posts dashboard screen following the [BaseViewModel] UDF/MVI contract.
+ *
+ * Automatically triggers [PostsDashboardEvent.LoadPosts] on initialization and cancels any
+ * in-flight fetch job before starting a new reload so overlapping network requests cannot race.
+ *
+ * @param getPostsUseCase Domain use case used to stream posts from the repository.
+ */
 class PostsDashboardViewModel(
     private val getPostsUseCase: GetPostsUseCase,
 ) : BaseViewModel<PostsDashboardState, PostsDashboardEvent, PostsDashboardEffect>(
