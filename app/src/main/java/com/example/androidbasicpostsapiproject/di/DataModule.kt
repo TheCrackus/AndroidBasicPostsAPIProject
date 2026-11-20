@@ -8,10 +8,17 @@ import org.koin.dsl.module
 
 val dataModule = module {
     single<PostRemoteDataSource> {
-        PostRemoteDataSourceImpl(apiService = get())
+        PostRemoteDataSourceImpl(
+            apiService = get(),
+            dispatchers = get(),
+            json = get(),
+        )
     }
 
     single<PostRepository> {
-        PostRepositoryImpl(remoteDataSource = get())
+        PostRepositoryImpl(
+            remoteDataSource = get(),
+            dispatchers = get(),
+        )
     }
 }

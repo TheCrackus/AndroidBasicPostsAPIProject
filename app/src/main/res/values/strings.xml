@@ -4,8 +4,6 @@
     <string name="nav_feed">Feed</string>
     <string name="nav_logout">Logout</string>
 
-    <string name="posts_feed_title">MessageNode</string>
-
     <string name="default_error_title">Aviso</string>
     <string name="ok_text_button">Entendido</string>
 

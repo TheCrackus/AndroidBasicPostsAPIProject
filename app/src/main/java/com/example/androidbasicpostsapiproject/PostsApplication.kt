@@ -15,7 +15,9 @@ class PostsApplication : Application() {
         super.onCreate()
 
         startKoin {
-            androidLogger(Level.DEBUG)
+            if (BuildConfig.DEBUG) {
+                androidLogger(Level.DEBUG)
+            }
 
             androidContext(this@PostsApplication)
 

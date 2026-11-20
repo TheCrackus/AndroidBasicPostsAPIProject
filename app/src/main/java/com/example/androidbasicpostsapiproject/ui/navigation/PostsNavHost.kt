@@ -11,8 +11,8 @@ import kotlinx.serialization.Serializable
 object PostsDashboard
 
 @Composable
-fun BaseNavController(
-    navHostController: NavHostController
+fun PostsNavHost(
+    navHostController: NavHostController,
 ) {
     NavHost(
         navController = navHostController,

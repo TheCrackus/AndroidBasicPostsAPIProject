@@ -7,17 +7,24 @@ import com.example.androidbasicpostsapiproject.core.constants.NO_SERVER_CONNECTI
 import com.example.androidbasicpostsapiproject.core.constants.TIME_ERROR_MESSAGE
 import com.example.androidbasicpostsapiproject.core.constants.UNEXPECTED_ERROR_MESSAGE_PREFIX
 import com.example.androidbasicpostsapiproject.core.constants.VERIFY_NODE_JS_IS_RUNNING_ERROR_MESSAGE
-import com.google.gson.Gson
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
 import retrofit2.Response
 import java.io.IOException
 import java.net.SocketTimeoutException
 
+private val defaultNetworkJson = Json {
+    ignoreUnknownKeys = true
+    isLenient = true
+    coerceInputValues = true
+}
+
 suspend fun <T> safeApiCall(
     dispatcher: CoroutineDispatcher = Dispatchers.IO,
+    json: Json = defaultNetworkJson,
     apiCall: suspend () -> Response<T>
 ): NetworkResult<T> {
     return withContext(dispatcher) {
@@ -40,11 +47,7 @@ suspend fun <T> safeApiCall(
 
                 val parsedMessage = try {
                     rawError?.let {
-                        val parsed = Gson().fromJson(
-                            it,
-                            GenericApiErrorResponse::class.java
-                        )
-
+                        val parsed = json.decodeFromString<GenericApiErrorResponse>(it)
                         parsed.message ?: parsed.error
                     }
                 } catch (_: Exception) {

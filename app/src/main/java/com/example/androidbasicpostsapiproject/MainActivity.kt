@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
 import com.example.androidbasicpostsapiproject.core.ui.screen.BaseContainer
-import com.example.androidbasicpostsapiproject.ui.navigation.BaseNavController
+import com.example.androidbasicpostsapiproject.ui.navigation.PostsNavHost
 import com.example.androidbasicpostsapiproject.ui.theme.AndroidBasicPostsAPIProjectTheme
 
 class MainActivity : ComponentActivity() {
@@ -24,8 +24,8 @@ class MainActivity : ComponentActivity() {
                 BaseContainer(
                     modifier = Modifier.fillMaxSize(),
                 ) {
-                    BaseNavController(
-                        navHostController = navController
+                    PostsNavHost(
+                        navHostController = navController,
                     )
                 }
             }

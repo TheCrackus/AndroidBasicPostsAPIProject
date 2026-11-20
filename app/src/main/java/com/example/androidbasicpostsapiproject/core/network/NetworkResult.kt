@@ -1,5 +1,7 @@
 package com.example.androidbasicpostsapiproject.core.network
 
+import kotlinx.serialization.Serializable
+
 sealed class NetworkResult<out T> {
     data class Success<out T>(val data: T) : NetworkResult<T>()
 
@@ -12,8 +14,9 @@ sealed class NetworkResult<out T> {
     data object Loading : NetworkResult<Nothing>()
 }
 
+@Serializable
 data class GenericApiErrorResponse(
-    val message: String?,
-    val error: String?,
-    val statusCode: Int?
+    val message: String? = null,
+    val error: String? = null,
+    val statusCode: Int? = null,
 )

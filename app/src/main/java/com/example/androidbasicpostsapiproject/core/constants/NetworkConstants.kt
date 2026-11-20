@@ -15,3 +15,5 @@ const val UNEXPECTED_ERROR_MESSAGE_PREFIX = "Error inesperado:"
 const val NO_IDENTIFIED_ERROR_MESSAGE = "Excepción no identificada"
 
 const val BASE_URL = "http://10.0.2.2:8080/"
+
+const val JSON_MEDIA_TYPE = "application/json; charset=UTF8"

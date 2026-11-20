@@ -6,13 +6,16 @@ import com.example.androidbasicpostsapiproject.core.ui.state.BaseData
 import com.example.androidbasicpostsapiproject.core.ui.state.BaseError
 import com.example.androidbasicpostsapiproject.core.ui.state.BaseViewModel
 import com.example.androidbasicpostsapiproject.domain.usecase.GetPostsUseCase
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
-class PostDashboardViewModel(
-    private val getPostsUseCase: GetPostsUseCase
+class PostsDashboardViewModel(
+    private val getPostsUseCase: GetPostsUseCase,
 ) : BaseViewModel<PostsDashboardState, PostsDashboardEvent, PostsDashboardEffect>(
     initialState = PostsDashboardState()
 ) {
+    private var fetchPostsJob: Job? = null
+
     init {
         onAction(
             event = PostsDashboardEvent.LoadPosts
@@ -66,7 +69,8 @@ class PostDashboardViewModel(
     }
 
     private fun fetchPosts() {
-        viewModelScope.launch {
+        fetchPostsJob?.cancel()
+        fetchPostsJob = viewModelScope.launch {
             getPostsUseCase().collect { result ->
                 when (result) {
                     is NetworkResult.Error ->

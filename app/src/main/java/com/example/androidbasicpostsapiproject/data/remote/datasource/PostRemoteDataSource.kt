@@ -1,8 +1,8 @@
 package com.example.androidbasicpostsapiproject.data.remote.datasource
 
 import com.example.androidbasicpostsapiproject.core.network.NetworkResult
-import com.example.androidbasicpostsapiproject.data.remote.model.PostDto
+import com.example.androidbasicpostsapiproject.data.remote.model.PostsResponseDto
 
 interface PostRemoteDataSource {
-    suspend fun getPosts(): NetworkResult<List<PostDto>>
+    suspend fun getPosts(): NetworkResult<PostsResponseDto>
 }

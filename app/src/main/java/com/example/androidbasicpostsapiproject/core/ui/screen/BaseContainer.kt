@@ -14,13 +14,9 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.androidbasicpostsapiproject.R
-import com.example.androidbasicpostsapiproject.ui.theme.MessageNodeAmber
-import com.example.androidbasicpostsapiproject.ui.theme.MessageNodePurple
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,6 +26,7 @@ fun BaseContainer(
 ) {
     Scaffold(
         modifier = modifier,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 title = {
@@ -37,7 +34,7 @@ fun BaseContainer(
                         modifier = Modifier
                             .border(
                                 width = 1.dp,
-                                color = Color.White,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
                                 shape = RoundedCornerShape(
                                     size = 2.dp
                                 )
@@ -46,9 +43,8 @@ fun BaseContainer(
                     ) {
                         Text(
                             text = stringResource(id = R.string.app_header_title),
-                            color = Color.White,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
                             style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
                         )
                     }
                 },
@@ -56,21 +52,22 @@ fun BaseContainer(
                     TextButton(onClick = { /* TODO: Feed tab */ }) {
                         Text(
                             text = stringResource(id = R.string.nav_feed),
-                            color = MessageNodeAmber,
-                            fontWeight = FontWeight.Bold
+                            color = MaterialTheme.colorScheme.secondary,
+                            style = MaterialTheme.typography.labelLarge,
                         )
                     }
 
                     TextButton(onClick = { /* TODO: Logout action */ }) {
                         Text(
                             text = stringResource(id = R.string.nav_logout),
-                            color = Color.White
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            style = MaterialTheme.typography.bodyMedium,
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MessageNodePurple,
-                    titleContentColor = Color.White
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
             )
         }
