@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
 import com.example.androidbasicpostsapiproject.core.ui.screen.BaseContainer
+import com.example.androidbasicpostsapiproject.domain.model.Creator
 import com.example.androidbasicpostsapiproject.domain.model.Post
 import com.example.androidbasicpostsapiproject.ui.dashboard.screen.PostsDashboardScreen
 import com.example.androidbasicpostsapiproject.ui.dashboard.state.PostsDashboardState
@@ -84,7 +85,9 @@ private fun PostsAppPreview() {
                         title = "First Post",
                         content = "This is the first post created in the system!",
                         imageUrl = null,
-                        creator = "Edgar",
+                        creator = Creator(
+                            name = "Edgar",
+                        ),
                         createdAt = "2026-11-18T10:00:00.000Z",
                     ),
                     Post(
@@ -92,7 +95,9 @@ private fun PostsAppPreview() {
                         title = "Second Awesome Post",
                         content = "Exploring the full potential of Android Jetpack Compose.",
                         imageUrl = null,
-                        creator = "Admin",
+                        creator = Creator(
+                            name = "Admin",
+                        ),
                         createdAt = "2026-11-19T15:30:00.000Z",
                     ),
                 ),

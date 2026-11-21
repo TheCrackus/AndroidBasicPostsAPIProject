@@ -38,6 +38,7 @@ import com.example.androidbasicpostsapiproject.R
 import com.example.androidbasicpostsapiproject.core.ui.screen.BaseScreenOverlay
 import com.example.androidbasicpostsapiproject.core.ui.screen.ObserveAsEvents
 import com.example.androidbasicpostsapiproject.core.utils.formatPostDate
+import com.example.androidbasicpostsapiproject.domain.model.Creator
 import com.example.androidbasicpostsapiproject.domain.model.Post
 import com.example.androidbasicpostsapiproject.ui.dashboard.state.PostsDashboardViewModel
 import com.example.androidbasicpostsapiproject.ui.dashboard.state.PostsDashboardEffect
@@ -112,7 +113,7 @@ fun PostsDashboardScreen(
         LazyColumn(
             modifier = modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background),
+                .background(color = MaterialTheme.colorScheme.background),
             contentPadding = PaddingValues(horizontal = 20.dp, vertical = 24.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -281,7 +282,7 @@ private fun PostItemCard(
     onDeleteClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val creatorName = post.creator ?: stringResource(id = R.string.default_post_creator)
+    val creatorName = post.creator?.name ?: stringResource(id = R.string.default_post_creator)
 
     val formattedDate = formatPostDate(dateString = post.createdAt)
 
@@ -308,7 +309,7 @@ private fun PostItemCard(
                 style = MaterialTheme.typography.bodySmall,
             )
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(height = 10.dp))
 
             Text(
                 text = post.title,
@@ -316,7 +317,7 @@ private fun PostItemCard(
                 style = MaterialTheme.typography.titleLarge,
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(height = 16.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -391,7 +392,7 @@ private fun EmptyPostsSection(
 
 @Preview(showBackground = true)
 @Composable
-fun PostsDashboardPreview() {
+private fun PostsDashboardPreview() {
     AndroidBasicPostsAPIProjectTheme {
         PostsDashboardScreen(
             uiState = PostsDashboardState(
@@ -402,7 +403,9 @@ fun PostsDashboardPreview() {
                         title = "First Post",
                         content = "This is the first post created in the system!",
                         imageUrl = null,
-                        creator = "Edgar",
+                        creator = Creator(
+                            name = "Edgar"
+                        ),
                         createdAt = "Invalid Date"
                     ),
                     Post(
@@ -410,7 +413,9 @@ fun PostsDashboardPreview() {
                         title = "Second Awesome Post",
                         content = "Exploring the full potential of Android Jetpack Compose.",
                         imageUrl = null,
-                        creator = "Admin",
+                        creator = Creator(
+                            name = "Admin"
+                        ),
                         createdAt = "2026-11-18T10:00:00.000Z"
                     )
                 )
@@ -422,7 +427,7 @@ fun PostsDashboardPreview() {
 
 @Preview(showBackground = true)
 @Composable
-fun PostsDashboardDarkPreview() {
+private fun PostsDashboardDarkPreview() {
     AndroidBasicPostsAPIProjectTheme(darkTheme = true) {
         PostsDashboardScreen(
             uiState = PostsDashboardState(
@@ -433,7 +438,9 @@ fun PostsDashboardDarkPreview() {
                         title = "First Post",
                         content = "This is the first post created in the system!",
                         imageUrl = null,
-                        creator = "Edgar",
+                        creator = Creator(
+                            name = "Edgar"
+                        ),
                         createdAt = "2026-11-18T10:00:00.000Z"
                     )
                 )
@@ -445,7 +452,7 @@ fun PostsDashboardDarkPreview() {
 
 @Preview(showBackground = true)
 @Composable
-fun PostsDashboardEmptyPreview() {
+private fun PostsDashboardEmptyPreview() {
     AndroidBasicPostsAPIProjectTheme {
         PostsDashboardScreen(
             uiState = PostsDashboardState(

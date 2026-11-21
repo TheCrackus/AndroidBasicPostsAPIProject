@@ -18,6 +18,8 @@ const val POST_IMAGE_URL_DTO = "imageUrl"
 
 const val POST_CREATOR_DTO = "creator"
 
+const val POST_CREATOR_NAME_DTO = "name"
+
 const val POST_CREATED_AT_DTO = "createdAt"
 
 const val POST_TIMEOUT_SECONDS = 15L

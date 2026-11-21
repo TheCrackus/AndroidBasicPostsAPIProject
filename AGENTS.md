@@ -22,7 +22,7 @@ Este documento contiene la arquitectura, tecnologías, reglas de diseño y el es
   - **Emulador Android:** `http://10.0.2.2:8080/` *(alias del localhost de la máquina anfitriona)*.
   - **Dispositivo Físico:** `http://<IP_LOCAL_DE_TU_PC>:8080/` *(ambos en la misma red Wi-Fi)*.
 - **Endpoints Actuales:**
-  - `GET /feed/posts` -> Retorna lista de posts envuelta en `{ posts: [...] }`.
+  - `GET /feed/posts` -> Retorna lista de posts envuelta en `{ posts: [{ _id, title, content, imageUrl, creator: { name }, createdAt }] }`.
   - (Futuro) `POST /feed/post` -> Creación de post con multipart/json.
 - **Tráfico HTTP (No seguro):** Habilitado en `AndroidManifest.xml` con `android:usesCleartextTraffic="true"` y permisos `INTERNET` / `ACCESS_NETWORK_STATE`.
 
@@ -75,7 +75,7 @@ com.example.androidbasicpostsapiproject/
 │
 ├── domain/                             # NÚCLEO INDEPENDIENTE (Sin dependencias de Android ni Retrofit)
 │   ├── model/
-│   │   └── Post.kt                     # Modelo puro de negocio (id, title, content, imageUrl?, creator?, createdAt)
+│   │   └── Post.kt                     # Modelos puros de negocio: Post(id, title, content, imageUrl?, creator?, createdAt) y Creator(name)
 │   ├── repository/
 │   │   └── PostRepository.kt           # CONTRATO (Interface con Flow<NetworkResult<T>>)
 │   └── usecase/
@@ -86,12 +86,12 @@ com.example.androidbasicpostsapiproject/
 │   │   ├── api/
 │   │   │   └── PostsApiService.kt      # Interfaz de endpoints con Retrofit (GET feed/posts -> Response<PostsResponseDto>)
 │   │   ├── model/
-│   │   │   └── PostDto.kt              # DTOs @Serializable con @SerialName (PostsResponseDto y PostDto)
+│   │   │   └── PostDto.kt              # DTOs @Serializable con @SerialName (PostsResponseDto, CreatorDto y PostDto)
 │   │   └── datasource/
 │   │       ├── PostRemoteDataSource.kt     # Interface del origen de datos remoto
 │   │       └── PostRemoteDataSourceImpl.kt # Implementación que invoca safeApiCall con DispatcherProvider y Json inyectados
 │   ├── mapper/
-│   │   └── PostMapper.kt               # Extensiones: PostDto.toDomain(), List<PostDto>.toDomain(), PostsResponseDto.toDomain()
+│   │   └── PostMapper.kt               # Extensiones: CreatorDto.toDomain(), PostDto.toDomain(), List<PostDto>.toDomain(), PostsResponseDto.toDomain()
 │   └── repository/
 │       └── PostRepositoryImpl.kt       # Implementa PostRepository de Domain usando DispatcherProvider inyectado
 │
@@ -221,6 +221,10 @@ com.example.androidbasicpostsapiproject/
   - Extracción del composable `PostsApp` (patrón Slot API de Compose) en `MainActivity.kt` con `PostsAppPreview` (Light y Dark con `showSystemUi = true`) y `@PreviewLightDark` en `BaseContainer.kt`, siguiendo las guías oficiales de Compose para Previews sin acoplar `ViewModel`/Koin.
   - Documentación KDoc (`/** ... */`) agregada en toda la infraestructura `core/` (`DispatcherProvider`, `NetworkResult`, `safeApiCall`, `formatPostDate`, `BaseContainer`, `BaseScreenOverlay`, `ObserveAsEvents`, `BaseState`/`BaseData`, `BaseEvent`, `BaseEffect`, `BaseError`, `BaseViewModel`) y puntos clave (`MainActivity`/`PostsApp`, `PostsNavHost`, `PostsDashboardRoot`/`PostsDashboardScreen`, `PostsDashboardViewModel`, `PostMapper`, `PostRepository`, `GetPostsUseCase`, `PostRepositoryImpl`).
   - Incorporación de la Regla de Oro de alineación con la documentación oficial de Google y estándares KDoc/Previews en `AGENTS.md`.
+- [x] **Alineación del contrato de `creator` anidado con la API REST:**
+  - Modelado de `CreatorDto` (`POST_CREATOR_NAME_DTO = "name"`) en `PostDto.kt` y modelo de dominio `Creator(name)` en `Post.kt` manteniendo `Post.creator: Creator?`.
+  - Agregado de `CreatorDto.toDomain()` con KDoc y normalización `trim()` / `isNotBlank()` a `null` en `PostMapper.kt`, delegando el fallback localizado a `R.string.default_post_creator` en `PostsDashboardScreen.kt` (sin duplicar constantes de texto visible en `DataConstants.kt`).
+  - Previews de `PostsDashboardScreen.kt` (`PostsDashboardPreview`, `PostsDashboardDarkPreview`, `PostsDashboardEmptyPreview`) restringidas a `private` conforme a la guía de Compose y `AGENTS.md`.
 
 ---
 
