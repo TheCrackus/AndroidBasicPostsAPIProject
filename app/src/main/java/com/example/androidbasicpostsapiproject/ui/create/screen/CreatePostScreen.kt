@@ -1,5 +1,7 @@
 package com.example.androidbasicpostsapiproject.ui.create.screen
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,6 +19,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -27,12 +30,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.androidbasicpostsapiproject.R
 import com.example.androidbasicpostsapiproject.core.constants.ALPHA_DISABLED_CONTAINER
 import com.example.androidbasicpostsapiproject.core.constants.ALPHA_DISABLED_CONTENT
 import com.example.androidbasicpostsapiproject.core.constants.ALPHA_PLACEHOLDER
+import com.example.androidbasicpostsapiproject.core.constants.BORDER_WIDTH_THIN
 import com.example.androidbasicpostsapiproject.core.constants.CORNER_RADIUS_EXTRA_SMALL
 import com.example.androidbasicpostsapiproject.core.constants.CORNER_RADIUS_SMALL
 import com.example.androidbasicpostsapiproject.core.constants.DIVIDER_THICKNESS_MEDIUM
@@ -40,11 +45,15 @@ import com.example.androidbasicpostsapiproject.core.constants.ELEVATION_LARGE
 import com.example.androidbasicpostsapiproject.core.constants.POST_CONTENT_INPUT_HEIGHT
 import com.example.androidbasicpostsapiproject.core.constants.POST_CONTENT_MAX_LINES
 import com.example.androidbasicpostsapiproject.core.constants.POST_CONTENT_MIN_LINES
+import com.example.androidbasicpostsapiproject.core.constants.SINGLE_LINE_MAX
+import com.example.androidbasicpostsapiproject.core.constants.SPACING_COMPACT
 import com.example.androidbasicpostsapiproject.core.constants.SPACING_DEFAULT
 import com.example.androidbasicpostsapiproject.core.constants.SPACING_EXTRA_LARGE
+import com.example.androidbasicpostsapiproject.core.constants.SPACING_EXTRA_SMALL
 import com.example.androidbasicpostsapiproject.core.constants.SPACING_LARGE
 import com.example.androidbasicpostsapiproject.core.constants.SPACING_MEDIUM
 import com.example.androidbasicpostsapiproject.core.constants.SPACING_SMALL
+import com.example.androidbasicpostsapiproject.core.constants.WEIGHT_FILL
 import com.example.androidbasicpostsapiproject.core.ui.screen.BaseScreenOverlay
 import com.example.androidbasicpostsapiproject.core.ui.screen.ObserveAsEvents
 import com.example.androidbasicpostsapiproject.ui.create.state.CreatePostEffect
@@ -61,7 +70,7 @@ import org.koin.androidx.compose.koinViewModel
  * navigation effects through [ObserveAsEvents], and delegates UI presentation to the stateless
  * [CreatePostScreen].
  *
- * @param viewModel Feature ViewModel handling the create post state and use case execution.
+ * @param viewModel Feature ViewModel handling the creation post state and use case execution.
  * @param onNavigateBack Callback invoked when creation is cancelled.
  * @param onNavigateBackWithSuccess Callback invoked when creation completes successfully.
  */
@@ -96,10 +105,11 @@ fun CreatePostRoot(
  *
  * Visual specification aligned with the React MessageNode reference:
  * - A purple bold header "New Post" with a bottom divider line.
- * - Upper-case labeled input fields ("TITLE", "CONTENT") with crisp borders.
+ * - Upper-case labeled input fields ("TITLE", "IMAGE", "CONTENT") with crisp borders.
  * - Bottom action buttons: Red text button "CANCEL" and solid purple button "ACCEPT".
  *
- * Enclosed within [BaseScreenOverlay] to provide loading indicators and error dialogs.
+ * Enclosed within [BaseScreenOverlay] to provide loading indicators, error dialogs, and generic
+ * notification dialogs.
  *
  * @param uiState Current immutable UI state representing form inputs and base status.
  * @param onAction Callback for propagating user events to the ViewModel.
@@ -115,6 +125,12 @@ fun CreatePostScreen(
         baseData = uiState.baseData,
         onErrorDismiss = {
             onAction(CreatePostEvent.DismissError)
+        },
+        onDialogDismiss = {
+            onAction(CreatePostEvent.DismissDialog)
+        },
+        onDialogConfirm = {
+            onAction(CreatePostEvent.ConfirmSuccessDialog)
         }
     ) {
         Card(
@@ -197,6 +213,14 @@ fun CreatePostScreen(
                             focusedContainerColor = MaterialTheme.colorScheme.surface,
                             unfocusedContainerColor = MaterialTheme.colorScheme.surface
                         )
+                    )
+
+                    Spacer(modifier = Modifier.height(height = SPACING_DEFAULT))
+
+                    ImagePickerSection(
+                        onSelectImageClick = {
+                            onAction(CreatePostEvent.SelectImageClick)
+                        }
                     )
 
                     Spacer(modifier = Modifier.height(height = SPACING_DEFAULT))
@@ -286,6 +310,76 @@ fun CreatePostScreen(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun ImagePickerSection(
+    onSelectImageClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    // TODO: Connect Photo Picker (PickVisualMedia) and upload image multipart data once the Node.js server supports receiving images
+    Column(modifier = modifier.fillMaxWidth()) {
+        Text(
+            text = stringResource(id = R.string.create_post_image_label),
+            style = MaterialTheme.typography.labelMedium.copy(
+                fontWeight = FontWeight.SemiBold
+            ),
+            color = MaterialTheme.colorScheme.onSurface
+        )
+
+        Spacer(modifier = Modifier.height(height = SPACING_SMALL))
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .border(
+                    width = BORDER_WIDTH_THIN,
+                    color = MaterialTheme.colorScheme.outline,
+                    shape = RoundedCornerShape(size = CORNER_RADIUS_EXTRA_SMALL)
+                )
+                .padding(
+                    horizontal = SPACING_MEDIUM,
+                    vertical = SPACING_COMPACT
+                ),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            OutlinedButton(
+                onClick = onSelectImageClick,
+                shape = RoundedCornerShape(size = CORNER_RADIUS_EXTRA_SMALL),
+                border = BorderStroke(
+                    width = BORDER_WIDTH_THIN,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            ) {
+                Text(
+                    text = stringResource(id = R.string.btn_choose_image),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+
+            Spacer(modifier = Modifier.width(width = SPACING_MEDIUM))
+
+            Text(
+                text = stringResource(id = R.string.create_post_image_placeholder),
+                modifier = Modifier.weight(weight = WEIGHT_FILL),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                    alpha = ALPHA_PLACEHOLDER
+                ),
+                maxLines = SINGLE_LINE_MAX,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+
+        Spacer(modifier = Modifier.height(height = SPACING_EXTRA_SMALL))
+
+        Text(
+            text = stringResource(id = R.string.create_post_image_hint),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 

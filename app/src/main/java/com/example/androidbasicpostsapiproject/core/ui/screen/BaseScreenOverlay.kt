@@ -14,20 +14,26 @@ import com.example.androidbasicpostsapiproject.R
 import com.example.androidbasicpostsapiproject.core.ui.state.BaseData
 
 /**
- * Shared screen wrapper that layers common loading and error UI over [content] based on
- * [baseData].
+ * Shared screen wrapper that layers common loading, error, and notification dialog UI over
+ * [content] based on [baseData].
  *
- * Displays a centered [CircularProgressIndicator] when [BaseData.isLoading] is `true`, and an
- * [AlertDialog] when [BaseData.error] is non-null.
+ * Displays a centered [CircularProgressIndicator] when [BaseData.isLoading] is `true`, an error
+ * [AlertDialog] when [BaseData.error] is non-null, and a [BaseNotificationDialog] when
+ * [BaseData.dialog] is non-null.
  *
- * @param baseData Common loading and error state for the wrapped screen.
+ * @param baseData Common loading, error, and dialog state for the wrapped screen.
  * @param onErrorDismiss Callback invoked when the user dismisses or confirms the error dialog.
+ * @param onDialogDismiss Callback invoked when the user dismisses a notification dialog.
+ * @param onDialogConfirm Callback invoked when the user taps the confirm button on a notification
+ * dialog (defaults to [onDialogDismiss]).
  * @param content Underlying stateless screen content.
  */
 @Composable
 fun BaseScreenOverlay(
     baseData: BaseData,
     onErrorDismiss: () -> Unit = {},
+    onDialogDismiss: () -> Unit = {},
+    onDialogConfirm: () -> Unit = onDialogDismiss,
     content: @Composable () -> Unit
 ) {
     Box(
@@ -65,6 +71,14 @@ fun BaseScreenOverlay(
                         )
                     }
                 }
+            )
+        }
+
+        baseData.dialog?.let { dialog ->
+            BaseNotificationDialog(
+                dialog = dialog,
+                onDismiss = onDialogDismiss,
+                onConfirm = onDialogConfirm
             )
         }
     }

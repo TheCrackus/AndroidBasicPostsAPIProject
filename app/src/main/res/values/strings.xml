@@ -6,6 +6,8 @@
 
     <string name="default_error_title">Aviso</string>
     <string name="ok_text_button">Entendido</string>
+    <string name="default_notification_title">Notificación</string>
+    <string name="btn_accept">Aceptar</string>
 
     <!-- UI Elements for Posts Dashboard -->
     <string name="status_placeholder">Your status</string>
@@ -24,8 +26,14 @@
     <string name="create_post_title">New Post</string>
     <string name="create_post_title_label">TITLE</string>
     <string name="create_post_title_placeholder">Title</string>
+    <string name="create_post_image_label">IMAGE</string>
+    <string name="btn_choose_image">Choose File</string>
+    <string name="create_post_image_placeholder">No file chosen</string>
+    <string name="create_post_image_hint">Please choose an image.</string>
     <string name="create_post_content_label">CONTENT</string>
     <string name="create_post_content_placeholder">Content</string>
     <string name="btn_create_post_submit">ACCEPT</string>
     <string name="btn_create_post_cancel">CANCEL</string>
+    <string name="create_post_success_title">Post creado</string>
+    <string name="create_post_success_message">La creación del post fue exitosa.</string>
 </resources>

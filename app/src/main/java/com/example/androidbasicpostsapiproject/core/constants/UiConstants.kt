@@ -38,6 +38,7 @@ const val ALPHA_PLACEHOLDER = 0.6f
 const val WEIGHT_FILL = 1f
 
 // Text Input Line Limits
+const val SINGLE_LINE_MAX = 1
 const val POST_CONTENT_MIN_LINES = 4
 const val POST_CONTENT_MAX_LINES = 6
 

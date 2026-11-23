@@ -1,8 +1,11 @@
 package com.example.androidbasicpostsapiproject.ui.create.state
 
 import androidx.lifecycle.viewModelScope
+import com.example.androidbasicpostsapiproject.R
 import com.example.androidbasicpostsapiproject.core.network.NetworkResult
 import com.example.androidbasicpostsapiproject.core.ui.state.BaseData
+import com.example.androidbasicpostsapiproject.core.ui.state.BaseDialog
+import com.example.androidbasicpostsapiproject.core.ui.state.BaseDialogType
 import com.example.androidbasicpostsapiproject.core.ui.state.BaseError
 import com.example.androidbasicpostsapiproject.core.ui.state.BaseViewModel
 import com.example.androidbasicpostsapiproject.domain.usecase.CreatePostUseCase
@@ -13,7 +16,9 @@ import kotlinx.coroutines.launch
  * ViewModel managing the Create Post flow following the [BaseViewModel] contract.
  *
  * Enforces in-flight job cancellation before initiating creation to prevent duplicate submissions
- * caused by rapid button presses.
+ * caused by rapid button presses. Upon a successful creation response, exposes a generic
+ * [BaseDialog] notification and navigates back only after the user confirms via
+ * [CreatePostEvent.ConfirmSuccessDialog].
  *
  * @param createPostUseCase Domain use case used to submit post creation to the repository.
  */
@@ -36,6 +41,10 @@ class CreatePostViewModel(
                     copy(content = event.content)
                 }
 
+            CreatePostEvent.SelectImageClick -> {
+                // TODO: Connect Photo Picker (PickVisualMedia) and multipart image upload once the Node.js server accepts image files
+            }
+
             CreatePostEvent.SubmitPost ->
                 submitPost()
 
@@ -45,6 +54,23 @@ class CreatePostViewModel(
                         baseData = baseData.copy(error = null)
                     )
                 }
+
+            CreatePostEvent.DismissDialog ->
+                updateState {
+                    copy(
+                        baseData = baseData.copy(dialog = null)
+                    )
+                }
+
+            CreatePostEvent.ConfirmSuccessDialog -> {
+                updateState {
+                    copy(
+                        baseData = baseData.copy(dialog = null)
+                    )
+                }
+
+                sendEffect(effect = CreatePostEffect.NavigateBackWithSuccess)
+            }
 
             CreatePostEvent.CancelClick ->
                 sendEffect(effect = CreatePostEffect.NavigateBack)
@@ -69,12 +95,19 @@ class CreatePostViewModel(
                             )
                         }
 
-                    is NetworkResult.Success -> {
+                    is NetworkResult.Success ->
                         updateState {
-                            copy(baseData = BaseData())
+                            copy(
+                                baseData = BaseData(
+                                    dialog = BaseDialog(
+                                        titleRes = R.string.create_post_success_title,
+                                        messageRes = R.string.create_post_success_message,
+                                        confirmButtonTextRes = R.string.btn_accept,
+                                        type = BaseDialogType.SUCCESS
+                                    )
+                                )
+                            )
                         }
-                        sendEffect(effect = CreatePostEffect.NavigateBackWithSuccess)
-                    }
 
                     is NetworkResult.Error ->
                         updateState {

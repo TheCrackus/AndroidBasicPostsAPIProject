@@ -64,13 +64,15 @@ com.example.androidbasicpostsapiproject/
 │   └── ui/                             # Infraestructura y Clases Base para la Capa UI
 │       ├── screen/
 │       │   ├── BaseContainer.kt        # Scaffold global con TopAppBar temática MessageNode (MaterialTheme) e innerPadding
-│       │   ├── BaseScreenOverlay.kt    # Overlay reutilizable con CircularProgressIndicator y AlertDialog de error
+│       │   ├── BaseNotificationDialog.kt # Componente genérico reutilizable para diálogos emergentes informativos/éxito con onDismiss y onConfirm
+│       │   ├── BaseScreenOverlay.kt    # Overlay reutilizable con CircularProgressIndicator, AlertDialog de error y BaseNotificationDialog
 │       │   └── ObserveAsEvents.kt      # Helper Composable que colecta Flow respetando Lifecycle.State.STARTED
 │       └── state/
-│           ├── BaseState.kt            # Interfaz BaseState y data class BaseData(isLoading, error, hasError)
+│           ├── BaseState.kt            # Interfaz BaseState y data class BaseData(isLoading, error, dialog, hasError, hasDialog)
 │           ├── BaseEvent.kt            # Interfaz BaseEvent
 │           ├── BaseEffect.kt           # Interfaz BaseEffect (one-off side effects)
 │           ├── BaseError.kt            # Modelado de errores en UI (errorTitle, errorBody, BaseErrorType)
+│           ├── BaseDialog.kt           # Modelado genérico de diálogos de notificación (título, mensaje, botón aceptar, @StringRes y BaseDialogType)
 │           └── BaseViewModel.kt        # ViewModel genérico abstracto <S, E, EF> con _uiState, _uiEffects, updateState y sendEffect
 │
 ├── domain/                             # NÚCLEO INDEPENDIENTE (Sin dependencias de Android ni Retrofit)
@@ -159,8 +161,9 @@ com.example.androidbasicpostsapiproject/
      - `*Screen`: Composable stateless que recibe `uiState` y `onAction`, envuelto en `BaseScreenOverlay`. Es ideal para testing y `@Preview`.
    - **Manejo de Ciclo de Vida para Efectos:**
      - Todo consumo de `uiEffects` debe hacerse a través del helper `ObserveAsEvents` (`repeatOnLifecycle(Lifecycle.State.STARTED)`).
-   - **Manejo de Errores y Overlays:**
+   - **Manejo de Errores, Diálogos Genéricos y Overlays:**
      - Cada pantalla maneja su propio evento `DismissError` para limpiar `baseData.error = null` en el ViewModel y conectarlo a `onErrorDismiss` de `BaseScreenOverlay`.
+     - Para notificaciones emergentes reutilizables (informativas o de éxito), usar `BaseDialog` en `BaseData.dialog`, renderizado automáticamente por `BaseNotificationDialog` dentro de `BaseScreenOverlay`, exponiendo `onDialogDismiss` (dismiss genérico) y `onDialogConfirm` (acción específica al pulsar Aceptar, por defecto igual a `onDialogDismiss`).
    - **Navegación y Previews:**
      - Utiliza Type-Safe Navigation oficial con destinos `@Serializable`.
      - El `NavHost` es el único que conoce `NavHostController`; las pantallas se comunican con navegación hacia arriba mediante lambdas (*State Hoisting*).
@@ -266,6 +269,11 @@ com.example.androidbasicpostsapiproject/
   - Eliminada la instanciación redundante de `PostsDashboardViewModel` en `composable<PostsDashboard>` y la obtención de `getBackStackEntry` / `koinViewModel` dentro de `dialog<CreatePost>` en `PostsNavHost.kt`.
   - Implementado el paso de resultado `NAV_RESULT_POST_CREATED` mediante `previousBackStackEntry?.savedStateHandle?.set(...)` en `dialog<CreatePost>` y observado en `composable<PostsDashboard>` vía `getStateFlow(...).collectAsStateWithLifecycle(lifecycle = backStackEntry.lifecycle, minActiveState = Lifecycle.State.RESUMED)`.
   - `PostsDashboardRoot` recibe `shouldRefreshPosts` y `onRefreshConsumed`, disparando `PostsDashboardEvent.LoadPosts` en `LaunchedEffect` y reseteando el flag a `false` tras consumirlo.
+- [x] **Diálogo Genérico de Notificaciones y Componente UI de Image Picker en Create Post:**
+  - Creación de `BaseDialog.kt` (`core/ui/state/`) con soporte para `@StringRes` y texto dinámico + `BaseDialogType`, integrado en `BaseData.dialog`.
+  - Creación del componente reutilizable `BaseNotificationDialog.kt` (`core/ui/screen/`, con `@PreviewLightDark`) e integración en `BaseScreenOverlay.kt` con callbacks `onDialogDismiss` y `onDialogConfirm`.
+  - Actualización de `CreatePostViewModel` / `CreatePostEvent` / `CreatePostScreen`: al crearse el post con éxito se muestra el diálogo de confirmación y al pulsar "Aceptar" (`ConfirmSuccessDialog`) se hace dismiss del diálogo y se ejecuta `NavigateBackWithSuccess`.
+  - Agregada sección `ImagePickerSection` (`IMAGE` / `Choose File` / `No file chosen`) en `CreatePostScreen.kt` con `TODO` pendiente de conexión a Photo Picker y envío multipart al backend Node.js.
 
 ---
 
