@@ -16,8 +16,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
-import androidx.compose.ui.unit.dp
 import com.example.androidbasicpostsapiproject.R
+import com.example.androidbasicpostsapiproject.core.constants.BORDER_WIDTH_THIN
+import com.example.androidbasicpostsapiproject.core.constants.CORNER_RADIUS_EXTRA_SMALL
+import com.example.androidbasicpostsapiproject.core.constants.SPACING_COMPACT
+import com.example.androidbasicpostsapiproject.core.constants.SPACING_DEFAULT
+import com.example.androidbasicpostsapiproject.core.constants.SPACING_EXTRA_SMALL
 import com.example.androidbasicpostsapiproject.ui.theme.AndroidBasicPostsAPIProjectTheme
 
 /**
@@ -34,7 +38,7 @@ import com.example.androidbasicpostsapiproject.ui.theme.AndroidBasicPostsAPIProj
 @Composable
 fun BaseContainer(
     modifier: Modifier = Modifier,
-    content: @Composable () -> Unit,
+    content: @Composable () -> Unit
 ) {
     Scaffold(
         modifier = modifier,
@@ -45,18 +49,21 @@ fun BaseContainer(
                     Box(
                         modifier = Modifier
                             .border(
-                                width = 1.dp,
+                                width = BORDER_WIDTH_THIN,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer,
                                 shape = RoundedCornerShape(
-                                    size = 2.dp
+                                    size = CORNER_RADIUS_EXTRA_SMALL
                                 )
                             )
-                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                            .padding(
+                                horizontal = SPACING_COMPACT,
+                                vertical = SPACING_EXTRA_SMALL
+                            )
                     ) {
                         Text(
                             text = stringResource(id = R.string.app_header_title),
                             color = MaterialTheme.colorScheme.onPrimaryContainer,
-                            style = MaterialTheme.typography.titleMedium,
+                            style = MaterialTheme.typography.titleMedium
                         )
                     }
                 },
@@ -65,7 +72,7 @@ fun BaseContainer(
                         Text(
                             text = stringResource(id = R.string.nav_feed),
                             color = MaterialTheme.colorScheme.secondary,
-                            style = MaterialTheme.typography.labelLarge,
+                            style = MaterialTheme.typography.labelLarge
                         )
                     }
 
@@ -73,13 +80,13 @@ fun BaseContainer(
                         Text(
                             text = stringResource(id = R.string.nav_logout),
                             color = MaterialTheme.colorScheme.onPrimaryContainer,
-                            style = MaterialTheme.typography.bodyMedium,
+                            style = MaterialTheme.typography.bodyMedium
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             )
         }
@@ -99,12 +106,12 @@ fun BaseContainer(
 private fun BaseContainerPreview() {
     AndroidBasicPostsAPIProjectTheme {
         BaseContainer(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize()
         ) {
             Text(
                 text = stringResource(id = R.string.app_header_title),
-                modifier = Modifier.padding(all = 16.dp),
-                color = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.padding(all = SPACING_DEFAULT),
+                color = MaterialTheme.colorScheme.onBackground
             )
         }
     }

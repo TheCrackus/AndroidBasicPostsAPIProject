@@ -26,7 +26,7 @@ private val DarkColorScheme = darkColorScheme(
     surface = MessageNodeSurfaceDark,
     onSurface = MessageNodeOnSurfaceDark,
     onSurfaceVariant = MessageNodeOnSurfaceVariantDark,
-    outline = MessageNodeBorderDark,
+    outline = MessageNodeBorderDark
 )
 
 private val LightColorScheme = lightColorScheme(
@@ -45,14 +45,14 @@ private val LightColorScheme = lightColorScheme(
     surface = MessageNodeSurfaceLight,
     onSurface = MessageNodePurpleDark,
     onSurfaceVariant = MessageNodeTextGray,
-    outline = MessageNodeBorderGray,
+    outline = MessageNodeBorderGray
 )
 
 @Composable
 fun AndroidBasicPostsAPIProjectTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     dynamicColor: Boolean = false,
-    content: @Composable () -> Unit,
+    content: @Composable () -> Unit
 ) {
     val colorScheme = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
@@ -67,6 +67,6 @@ fun AndroidBasicPostsAPIProjectTheme(
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography,
-        content = content,
+        content = content
     )
 }

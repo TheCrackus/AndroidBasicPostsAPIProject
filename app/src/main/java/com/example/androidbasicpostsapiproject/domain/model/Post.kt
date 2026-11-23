@@ -1,7 +1,7 @@
 package com.example.androidbasicpostsapiproject.domain.model
 
 data class Creator(
-    val name: String,
+    val name: String
 )
 
 data class Post(
@@ -10,5 +10,5 @@ data class Post(
     val content: String,
     val imageUrl: String?,
     val creator: Creator?,
-    val createdAt: String,
+    val createdAt: String
 )

@@ -11,14 +11,14 @@ val dataModule = module {
         PostRemoteDataSourceImpl(
             apiService = get(),
             dispatchers = get(),
-            json = get(),
+            json = get()
         )
     }
 
     single<PostRepository> {
         PostRepositoryImpl(
             remoteDataSource = get(),
-            dispatchers = get(),
+            dispatchers = get()
         )
     }
 }

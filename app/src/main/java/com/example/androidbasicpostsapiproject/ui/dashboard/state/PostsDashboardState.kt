@@ -1,5 +1,6 @@
 package com.example.androidbasicpostsapiproject.ui.dashboard.state
 
+import com.example.androidbasicpostsapiproject.core.constants.BASE_EMPTY_STRING
 import com.example.androidbasicpostsapiproject.core.ui.state.BaseData
 import com.example.androidbasicpostsapiproject.core.ui.state.BaseState
 import com.example.androidbasicpostsapiproject.domain.model.Post
@@ -7,5 +8,5 @@ import com.example.androidbasicpostsapiproject.domain.model.Post
 data class PostsDashboardState(
     override val baseData: BaseData = BaseData(),
     val posts: List<Post> = emptyList(),
-    val statusText: String = ""
+    val statusText: String = BASE_EMPTY_STRING
 ) : BaseState

@@ -4,21 +4,34 @@ import com.example.androidbasicpostsapiproject.core.coroutines.DispatcherProvide
 import com.example.androidbasicpostsapiproject.core.network.NetworkResult
 import com.example.androidbasicpostsapiproject.core.network.safeApiCall
 import com.example.androidbasicpostsapiproject.data.remote.api.PostsApiService
+import com.example.androidbasicpostsapiproject.data.remote.model.CreatePostRequestDto
+import com.example.androidbasicpostsapiproject.data.remote.model.CreatePostResponseDto
 import com.example.androidbasicpostsapiproject.data.remote.model.PostsResponseDto
 import kotlinx.serialization.json.Json
 
 class PostRemoteDataSourceImpl(
     private val apiService: PostsApiService,
     private val dispatchers: DispatcherProvider,
-    private val json: Json,
+    private val json: Json
 ) : PostRemoteDataSource {
 
     override suspend fun getPosts(): NetworkResult<PostsResponseDto> {
         return safeApiCall(
             dispatcher = dispatchers.io,
-            json = json,
+            json = json
         ) {
             apiService.getPosts()
+        }
+    }
+
+    override suspend fun createPost(
+        request: CreatePostRequestDto
+    ): NetworkResult<CreatePostResponseDto> {
+        return safeApiCall(
+            dispatcher = dispatchers.io,
+            json = json
+        ) {
+            apiService.createPost(request = request)
         }
     }
 }

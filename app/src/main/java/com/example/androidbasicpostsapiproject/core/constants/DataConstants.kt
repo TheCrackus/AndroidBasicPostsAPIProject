@@ -6,7 +6,13 @@ const val DEFAULT_POST_CONTENT = "Sin contenido"
 
 const val POST_API_ENDPOINT = "feed/posts"
 
+const val CREATE_POST_API_ENDPOINT = "feed/post"
+
 const val POSTS_RESPONSE_LIST_DTO = "posts"
+
+const val POST_RESPONSE_MESSAGE_DTO = "message"
+
+const val POST_RESPONSE_DATA_DTO = "post"
 
 const val POST_ID_DTO = "_id"
 

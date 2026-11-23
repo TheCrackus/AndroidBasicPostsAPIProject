@@ -23,7 +23,7 @@ Este documento contiene la arquitectura, tecnologías, reglas de diseño y el es
   - **Dispositivo Físico:** `http://<IP_LOCAL_DE_TU_PC>:8080/` *(ambos en la misma red Wi-Fi)*.
 - **Endpoints Actuales:**
   - `GET /feed/posts` -> Retorna lista de posts envuelta en `{ posts: [{ _id, title, content, imageUrl, creator: { name }, createdAt }] }`.
-  - (Futuro) `POST /feed/post` -> Creación de post con multipart/json.
+  - `POST /feed/post` -> Creación de post enviando `{ title, content }` y retornando `{ message, post }`.
 - **Tráfico HTTP (No seguro):** Habilitado en `AndroidManifest.xml` con `android:usesCleartextTraffic="true"` y permisos `INTERNET` / `ACCESS_NETWORK_STATE`.
 
 ---
@@ -50,17 +50,17 @@ com.example.androidbasicpostsapiproject/
 │
 ├── core/
 │   ├── constants/
-│   │   ├── BaseConstants.kt            # Constantes transversales base (BASE_EMPTY_STRING)
-│   │   ├── DataConstants.kt            # Constantes de persistencia/mapeo (endpoint feed/posts, DTO keys, fallbacks, POST_TIMEOUT_SECONDS)
+│   │   ├── BaseConstants.kt            # Constantes transversales base (BASE_EMPTY_STRING, patrones de fecha ISO/Display)
+│   │   ├── DataConstants.kt            # Constantes de persistencia/mapeo (endpoints, DTO keys, fallbacks, POST_TIMEOUT_SECONDS)
 │   │   ├── NetworkConstants.kt         # Constantes de red (BASE_URL, JSON_MEDIA_TYPE, mensajes de error HTTP)
-│   │   └── UiConstants.kt              # (Próximo paso) Constantes de UI, dimensiones (Dp), espaciados, bordes y elevaciones
+│   │   └── UiConstants.kt              # Constantes de UI: dimensiones (Dp), opacidades (alpha), pesos, límites de líneas, keys de LazyColumn y resultados de navegación
 │   ├── coroutines/
 │   │   └── DispatcherProvider.kt       # Abstracción inyectable de CoroutineDispatchers (IO, Default, Main)
 │   ├── network/
 │   │   ├── NetworkResult.kt            # Tipo sellado genérico (Success<T>, Error, Loading) y GenericApiErrorResponse (@Serializable)
 │   │   └── SafeApiCall.kt              # Ejecución segura con dispatcher inyectable, parser Json (kotlinx.serialization) y rethrow de CancellationException
 │   ├── utils/
-│   │   └── DateUtils.kt                # Utilidades transversales (formatPostDate para fechas en UI)
+│   │   └── DateUtils.kt                # Utilidades transversales (formatPostDate para fechas en UI, retorna null si está vacía)
 │   └── ui/                             # Infraestructura y Clases Base para la Capa UI
 │       ├── screen/
 │       │   ├── BaseContainer.kt        # Scaffold global con TopAppBar temática MessageNode (MaterialTheme) e innerPadding
@@ -79,32 +79,41 @@ com.example.androidbasicpostsapiproject/
 │   ├── repository/
 │   │   └── PostRepository.kt           # CONTRATO (Interface con Flow<NetworkResult<T>>)
 │   └── usecase/
-│       └── GetPostsUseCase.kt          # Caso de uso: Listar posts (CreatePostUseCase se abordará en una fase posterior)
+│       ├── GetPostsUseCase.kt          # Caso de uso: Listar posts
+│       └── CreatePostUseCase.kt        # Caso de uso: Crear post
 │
 ├── data/                               # IMPLEMENTACIÓN (Acceso a red y fuentes externas)
 │   ├── remote/
 │   │   ├── api/
-│   │   │   └── PostsApiService.kt      # Interfaz de endpoints con Retrofit (GET feed/posts -> Response<PostsResponseDto>)
+│   │   │   └── PostsApiService.kt      # Interfaz de endpoints con Retrofit (GET feed/posts, POST feed/post)
 │   │   ├── model/
-│   │   │   └── PostDto.kt              # DTOs @Serializable con @SerialName (PostsResponseDto, CreatorDto y PostDto)
+│   │   │   └── PostDto.kt              # DTOs @Serializable con @SerialName (PostsResponseDto, CreatorDto, PostDto, CreatePostRequest/ResponseDto)
 │   │   └── datasource/
 │   │       ├── PostRemoteDataSource.kt     # Interface del origen de datos remoto
 │   │       └── PostRemoteDataSourceImpl.kt # Implementación que invoca safeApiCall con DispatcherProvider y Json inyectados
 │   ├── mapper/
-│   │   └── PostMapper.kt               # Extensiones: CreatorDto.toDomain(), PostDto.toDomain(), List<PostDto>.toDomain(), PostsResponseDto.toDomain()
+│   │   └── PostMapper.kt               # Extensiones: CreatorDto/PostDto/List<PostDto>/PostsResponseDto/CreatePostResponseDto.toDomain()
 │   └── repository/
 │       └── PostRepositoryImpl.kt       # Implementa PostRepository de Domain usando DispatcherProvider inyectado
 │
 ├── di/                                 # Módulos de Inyección de Dependencias (Koin)
 │   ├── NetworkModule.kt                # DispatcherProvider, Json, HttpLoggingInterceptor (solo DEBUG), OkHttp, Retrofit, PostsApiService
 │   ├── DataModule.kt                   # PostRemoteDataSource, PostRepository
-│   ├── DomainModule.kt                 # GetPostsUseCase
-│   └── UiModule.kt                     # PostsDashboardViewModel registrado con viewModelOf(::PostsDashboardViewModel)
+│   ├── DomainModule.kt                 # GetPostsUseCase, CreatePostUseCase
+│   └── UiModule.kt                     # PostsDashboardViewModel y CreatePostViewModel registrados con viewModelOf
 │
 ├── ui/                                 # Capa de Presentación (Compose)
 │   ├── theme/                          # Color (Light/Dark MessageNode), Theme (dynamicColor = false), Type (estilos semánticos M3)
 │   ├── navigation/
-│   │   └── PostsNavHost.kt             # PostsNavHost con rutas tipadas (@Serializable object PostsDashboard)
+│   │   └── PostsNavHost.kt             # PostsNavHost con rutas tipadas (PostsDashboard y dialog<CreatePost>) y resultados vía SavedStateHandle (sin ViewModels)
+│   ├── create/
+│   │   ├── screen/
+│   │   │   └── CreatePostScreen.kt     # CreatePostRoot (Stateful) y CreatePostScreen (Stateless modal) + Previews Light/Dark
+│   │   └── state/
+│   │       ├── CreatePostViewModel.kt  # Inyecta CreatePostUseCase, cancela submitJob solapados
+│   │       ├── CreatePostState.kt      # CreatePostState(baseData, title, content, isSubmitEnabled) : BaseState
+│   │       ├── CreatePostEvent.kt      # OnTitleChange, OnContentChange, SubmitPost, DismissError, CancelClick : BaseEvent
+│   │       └── CreatePostEffect.kt     # NavigateBack, NavigateBackWithSuccess : BaseEffect
 │   └── dashboard/
 │       ├── screen/
 │       │   └── PostsDashboardScreen.kt # PostsDashboardRoot (Stateful) y PostsDashboardScreen (Stateless) + Previews (Light, Dark, Empty)
@@ -155,20 +164,31 @@ com.example.androidbasicpostsapiproject/
    - **Navegación y Previews:**
      - Utiliza Type-Safe Navigation oficial con destinos `@Serializable`.
      - El `NavHost` es el único que conoce `NavHostController`; las pantallas se comunican con navegación hacia arriba mediante lambdas (*State Hoisting*).
+     - `PostsNavHost` **no** instancia ni comparte `ViewModel`s entre destinos; cada `*Root` obtiene su propio `ViewModel` vía `koinViewModel()`. Para devolver resultados entre destinos (ej. recargar el feed tras un diálogo), se usa el patrón oficial con `SavedStateHandle` (`previousBackStackEntry?.savedStateHandle`) observado en `Lifecycle.State.RESUMED` y reseteado al consumirse.
      - Los `@Preview` siguen la guía oficial de Jetpack Compose: previsualizan composables stateless (`*Screen`, `BaseContainer`) o el shell completo (`PostsApp` en `MainActivity.kt` vía Slot API) en funciones `private`, sin instanciar `ViewModel`/Koin ni acoplar datos falsos dentro de `PostsNavHost` o producción.
 8. **Gestión de Textos y Constantes (Strings XML vs Constants Kotlin):**
    - **Textos de UI visibles para el usuario:** Deben centralizarse en `res/values/strings.xml` y consumirse mediante `stringResource(R.string.xxx)` en los Composables. Esto asegura soporte para internacionalización (i18n), accesibilidad y modificaciones centralizadas de textos en la interfaz.
    - **Constantes Técnicas, de Red y Mapeo:** Cadenas de conexión (`BASE_URL`), timeouts, endpoints (`POST_API_ENDPOINT`), nombres de campos en DTOs para `@SerialName` (`POST_ID_DTO`), prefijos de error técnico y valores por defecto en mappers (`DEFAULT_POST_TITLE`) **deben declararse como constantes en Kotlin (`const val`)** dentro del paquete `core/constants/` (`NetworkConstants.kt`, `DataConstants.kt`, etc.).
    - **Independencia de Capas:** Las capas `domain`, `data` y `core/network` **nunca** deben usar `R.string` ni depender del `Context` de Android para obtener textos; deben consumir las constantes de Kotlin para mantener la pureza arquitectónica y facilitar las pruebas unitarias.
-9. **Centralización de Dimensiones y Constantes de UI (Cero Magic Numbers):**
-   - **Prohibido el uso de números mágicos dispersos** (`2.dp`, `16.dp`, `20.sp`, etc.) directamente en los archivos de pantallas o componentes de Compose.
-   - **Centralización de Dimensiones:** Todos los valores de padding, márgenes, dimensiones de iconos/campos, espaciados de listas (`Arrangement.spacedBy`), radios de esquinas (`RoundedCornerShape`), grosores de bordes (`BorderStroke`) y elevaciones deben centralizarse en archivos de constantes dedicados (ej. `UiConstants.kt` o `Dimens.kt` en `core/constants/`).
-   - Las constantes de dimensiones (`Dp`, `TextUnit`, etc.) deben poseer nombres descriptivos y semánticos (ej. `POST_CARD_PADDING`, `STATUS_INPUT_HEIGHT`, `CORNER_RADIUS_SMALL`) para garantizar coherencia en el diseño y facilitar futuras modificaciones globales.
+9. **Centralización Estricta de Dimensiones, Colores, Opacidades y Constantes de UI (Cero Magic Numbers):**
+   - **Prohibido el uso de números mágicos, literales de color o opacidades dispersas** (`2.dp`, `16.dp`, `22.sp`, `alpha = 0.5f`, `Color(0xFF141218)`, `Color.White`, `weight(1f)`, etc.) directamente en los archivos de pantallas o componentes de Compose.
+   - **Centralización Obligatoria:**
+     - Todos los valores de padding, márgenes, dimensiones de campos/iconos, espaciados (`Arrangement.spacedBy`), radios de esquinas (`RoundedCornerShape`), grosores de bordes/divisores, elevaciones, opacidades (`ALPHA_*`), pesos (`WEIGHT_*`), límites de líneas y keys técnicas de `LazyColumn` **deben declararse en `core/constants/UiConstants.kt`**.
+     - Todos los colores deben declararse en `ui/theme/Color.kt` y consumirse en las pantallas mediante `MaterialTheme.colorScheme` (definido en `ui/theme/Theme.kt`).
+     - Todos los tamaños y estilos tipográficos (`sp`) deben declararse en `ui/theme/Type.kt` y consumirse mediante `MaterialTheme.typography`.
+     - Las constantes técnicas transversales (como `BASE_EMPTY_STRING` y patrones de fecha) deben declararse en `core/constants/BaseConstants.kt`.
+   - Las constantes deben poseer nombres descriptivos y semánticos (ej. `SPACING_DEFAULT`, `CORNER_RADIUS_SMALL`, `ALPHA_DISABLED_CONTAINER`, `POST_CONTENT_INPUT_HEIGHT`) para garantizar coherencia y facilitar modificaciones globales.
 10. **Documentación KDoc (`/** ... */`) Estratégica y Continua:**
     - **Documentación inmediata en cada cambio:** Al crear o modificar cualquier pieza importante o esencial del proyecto, se debe agregar o actualizar su KDoc en el mismo cambio (nunca dejarlo pendiente para después).
     - **Criterio de alcance:** Queda a criterio técnico del agente decidir qué piezas merecen documentación, priorizando siempre componentes esenciales de arquitectura, contratos y utilidades reutilizables (`core/`, contratos de `domain/`, casos de uso, mappers, repositorios, `PostsNavHost`, ViewModels y composables públicos `*Root`/`*Screen`).
     - **Formato estándar:** Usar KDoc en inglés (`/** ... */` con `@param`, `@return`, `@property` y referencias `[Symbol]`) explicando propósito, contrato, garantías de concurrencia/ciclo de vida y comportamientos de fallback.
     - **Sin ruido:** Evitar KDoc redundante en código trivial o getters autodescriptivos; los `TODO` internos dentro de bloques de código deben usar `// TODO:` y nunca `/** ... */`.
+11. **Estilo de Código — Cero Comas Finales (No Trailing Commas):**
+    - **Nunca** colocar una coma al final del último elemento/parámetro/argumento en llamadas a funciones, declaraciones de funciones, constructores, `data class`, anotaciones (`@Preview`, etc.) o listas (`listOf(...)`).
+    - Esta regla aplica estrictamente a todo código nuevo o modificado.
+12. **Estilo de Código — Importaciones Limpias (Sin FQN Inline):**
+    - Siempre declarar las importaciones necesarias con `import` en la cabecera del archivo.
+    - **Nunca** usar nombres completamente calificados (FQN) inline en el cuerpo del código (ej. `com.example....CreatePostResponseDto.toDomain()`) ni innecesariamente en KDoc de símbolos del mismo paquete, salvo que exista una colisión real de nombres que obligue a desambiguar.
 
 ---
 
@@ -225,23 +245,40 @@ com.example.androidbasicpostsapiproject/
   - Modelado de `CreatorDto` (`POST_CREATOR_NAME_DTO = "name"`) en `PostDto.kt` y modelo de dominio `Creator(name)` en `Post.kt` manteniendo `Post.creator: Creator?`.
   - Agregado de `CreatorDto.toDomain()` con KDoc y normalización `trim()` / `isNotBlank()` a `null` en `PostMapper.kt`, delegando el fallback localizado a `R.string.default_post_creator` en `PostsDashboardScreen.kt` (sin duplicar constantes de texto visible en `DataConstants.kt`).
   - Previews de `PostsDashboardScreen.kt` (`PostsDashboardPreview`, `PostsDashboardDarkPreview`, `PostsDashboardEmptyPreview`) restringidas a `private` conforme a la guía de Compose y `AGENTS.md`.
+- [x] **Implementación del Flujo de Creación de Post (`POST /feed/post`) como Modal / Overlay:**
+  - Constantes de endpoint y serialización en `DataConstants.kt` (`CREATE_POST_API_ENDPOINT`, `POST_RESPONSE_MESSAGE_DTO`, `POST_RESPONSE_DATA_DTO`).
+  - DTOs `@Serializable` `CreatePostRequestDto` y `CreatePostResponseDto` en `PostDto.kt`.
+  - Endpoint `createPost` en `PostsApiService.kt` y `PostRemoteDataSource` / `PostRemoteDataSourceImpl` con `safeApiCall` y `dispatchers.io`.
+  - Mapeo `CreatePostResponseDto.toDomain()` en `PostMapper.kt`.
+  - Contrato en `PostRepository` e implementación en `PostRepositoryImpl` retornando `Flow<NetworkResult<Post>>` con `.flowOn(dispatchers.io)`.
+  - Caso de uso `CreatePostUseCase` registrado como `factory` en `DomainModule.kt`.
+  - `CreatePostViewModel` registrado con `viewModelOf` en `UiModule.kt`, cancelando jobs solapados (`submitJob`).
+  - Estado, eventos y efectos MVI: `CreatePostState` (con validación `isSubmitEnabled`), `CreatePostEvent` y `CreatePostEffect`.
+  - **Fidelidad al diseño MessageNode (React modal/overlay):** UI `CreatePostScreen` como modal emergente con backdrop oscurecido, encabezado morado en negrita con divisor horizontal, etiquetas en mayúsculas (`TITLE`, `CONTENT`), botón de texto rojo `CANCEL` y botón morado sólido `ACCEPT`.
+  - **Navegación tipo diálogo (`dialog<CreatePost>`):** Registrado como destino de diálogo en `PostsNavHost.kt` sobre `PostsDashboard`.
+  - Textos de UI centralizados en `res/values/strings.xml`.
+- [x] **Centralización Estricta de Constantes de UI, Eliminación de Magic Numbers y Reglas de Estilo:**
+  - Creación de `core/constants/UiConstants.kt` con dimensiones (`Dp`), opacidades (`ALPHA_*`), peso (`WEIGHT_FILL`), límites de líneas (`POST_CONTENT_MIN_LINES`/`MAX_LINES`), keys de `LazyColumn` y key de resultado de navegación (`NAV_RESULT_POST_CREATED`).
+  - Adición de `headlineSmall` en `ui/theme/Type.kt` para encabezados de modal y migración total de `CreatePostScreen.kt`, `PostsDashboardScreen.kt` y `BaseContainer.kt` a `UiConstants`, `MaterialTheme.colorScheme` (eliminando `Color(0xFF141218)`, `Color.White` y colores directos en `CreatePostScreen`) y `MaterialTheme.typography`.
+  - Centralización de patrones de fecha (`ISO_DATE_TIME_PATTERN`, `DISPLAY_DATE_PATTERN`) en `BaseConstants.kt`, refactorización de `formatPostDate` para retornar `String?` con fallback localizado `R.string.invalid_post_date` en UI, unificación de `BASE_EMPTY_STRING` (eliminando `EMPTY_STRING` duplicado en `DataConstants.kt`) en estados y mappers.
+  - Eliminación global de comas finales (*trailing commas*) y limpieza de referencia FQN redundante en `CreatePostEffect.kt`, documentando ambas como reglas estrictas en `AGENTS.md`.
+- [x] **Desacoplamiento de `PostsNavHost` y Patrón Oficial `SavedStateHandle` para Resultados entre Destinos:**
+  - Eliminada la instanciación redundante de `PostsDashboardViewModel` en `composable<PostsDashboard>` y la obtención de `getBackStackEntry` / `koinViewModel` dentro de `dialog<CreatePost>` en `PostsNavHost.kt`.
+  - Implementado el paso de resultado `NAV_RESULT_POST_CREATED` mediante `previousBackStackEntry?.savedStateHandle?.set(...)` en `dialog<CreatePost>` y observado en `composable<PostsDashboard>` vía `getStateFlow(...).collectAsStateWithLifecycle(lifecycle = backStackEntry.lifecycle, minActiveState = Lifecycle.State.RESUMED)`.
+  - `PostsDashboardRoot` recibe `shouldRefreshPosts` y `onRefreshConsumed`, disparando `PostsDashboardEvent.LoadPosts` en `LaunchedEffect` y reseteando el flag a `false` tras consumirlo.
 
 ---
 
 ## 7. Próximos Pasos Sugeridos (Para el siguiente Chat)
-1. **Centralización de Constantes, Dimensiones (`Dp`) y Textos Técnicos (Cero Magic Numbers):**
-   - Crear `UiConstants.kt` (o `Dimens.kt`) en `core/constants/`.
-   - Extraer y reemplazar las dimensiones `Dp` directas (`1.dp`, `2.dp`, `4.dp`, `6.dp`, `8.dp`, `10.dp`, `12.dp`, `16.dp`, `20.dp`, `24.dp`, `40.dp`) y pesos (`1f`) en `PostsDashboardScreen.kt` y `BaseContainer.kt`. *(Nota: los tamaños `sp` y colores ya quedaron centralizados en `Type.kt`, `Color.kt` y `Theme.kt`.)*
-   - Centralizar textos técnicos no-UI pendientes: keys de `LazyColumn` (`"status_section"`, `"new_post_button"`, `"empty_posts_state"`, prefijo `"post_fallback_"`), patrones de fecha en `DateUtils.kt` (`"yyyy-MM-dd'T'HH:mm:ss"`, `"dd/MM/yyyy"` + mover el fallback visible `"Invalid Date"` a `R.string` en UI) y usar `BASE_EMPTY_STRING` en `PostsDashboardState.statusText`.
-2. **Flujo de Creación y Edición de Posts:**
-   - Crear pantalla / diálogo modal para nuevo post (`POST /feed/post`).
-   - Definir la ruta en `PostsNavHost` y conectar el evento `NewPostClick` / `EditPostClick`.
-3. **Flujo de Detalle de Post:**
+1. **Flujo de Detalle de Post:**
    - Crear `PostDetailScreen` con ruta `@Serializable data class PostDetailRoute(val postId: String)`.
    - Conectar `ViewPostClick` para navegar a la pantalla de detalle.
-4. **Integración de Eliminación de Post:**
+2. **Flujo de Edición de Post (`PUT /feed/post/:postId`):**
+   - Extender el formulario de post o crear componentes reutilizables para edición.
+   - Conectar `EditPostClick` desde `PostsDashboardScreen`.
+3. **Integración de Eliminación de Post:**
    - Definir endpoint `DELETE /feed/post/{postId}` en `PostsApiService` y `DeletePostUseCase`.
-5. **Carga de Imágenes Remotas:**
+4. **Carga de Imágenes Remotas:**
    - Integrar Coil (`io.coil-kt:coil-compose`) para renderizar `imageUrl` cuando no sea `null`.
-6. **Cobertura de Pruebas Unitarias (Pendiente Bloque B.5):**
-   - Agregar tests unitarios para `PostMapper`, `SafeApiCall`, `PostRepositoryImpl` y `PostsDashboardViewModel` aprovechando `DispatcherProvider` inyectado.
+5. **Cobertura de Pruebas Unitarias (Pendiente Bloque B.5):**
+   - Agregar tests unitarios para `PostMapper`, `SafeApiCall`, `PostRepositoryImpl`, `CreatePostUseCase`, `PostsDashboardViewModel` y `CreatePostViewModel` aprovechando `DispatcherProvider` inyectado.

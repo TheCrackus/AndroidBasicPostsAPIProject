@@ -1,7 +1,9 @@
 package com.example.androidbasicpostsapiproject.data.mapper
 
+import com.example.androidbasicpostsapiproject.core.constants.BASE_EMPTY_STRING
 import com.example.androidbasicpostsapiproject.core.constants.DEFAULT_POST_CONTENT
 import com.example.androidbasicpostsapiproject.core.constants.DEFAULT_POST_TITLE
+import com.example.androidbasicpostsapiproject.data.remote.model.CreatePostResponseDto
 import com.example.androidbasicpostsapiproject.data.remote.model.CreatorDto
 import com.example.androidbasicpostsapiproject.data.remote.model.PostDto
 import com.example.androidbasicpostsapiproject.data.remote.model.PostsResponseDto
@@ -35,7 +37,7 @@ fun PostDto.toDomain(): Post {
         content = this.content?.takeIf { it.isNotBlank() } ?: DEFAULT_POST_CONTENT,
         imageUrl = this.imageUrl?.takeIf { it.isNotBlank() },
         creator = this.creator?.toDomain(),
-        createdAt = this.createdAt.orEmpty(),
+        createdAt = this.createdAt.orEmpty()
     )
 }
 
@@ -44,3 +46,21 @@ fun List<PostDto>.toDomain(): List<Post> = map { it.toDomain() }
 
 /** Maps a wrapped [PostsResponseDto] envelope to its domain list of [Post] models. */
 fun PostsResponseDto.toDomain(): List<Post> = this.posts.orEmpty().toDomain()
+
+/**
+ * Maps a [CreatePostResponseDto]
+ * envelope to a domain [Post] model.
+ *
+ * If the nested [CreatePostResponseDto.post]
+ * is null, a placeholder [Post] with [DEFAULT_POST_TITLE] and [DEFAULT_POST_CONTENT] is returned.
+ */
+fun CreatePostResponseDto.toDomain(): Post {
+    return this.post?.toDomain() ?: Post(
+        id = BASE_EMPTY_STRING,
+        title = DEFAULT_POST_TITLE,
+        content = DEFAULT_POST_CONTENT,
+        imageUrl = null,
+        creator = null,
+        createdAt = BASE_EMPTY_STRING
+    )
+}

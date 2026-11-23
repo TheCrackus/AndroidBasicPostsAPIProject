@@ -18,4 +18,14 @@
     <string name="empty_posts_message">No hay posts disponibles</string>
     <string name="btn_reload_posts">Cargar posts</string>
     <string name="default_post_creator">Anónimo</string>
+    <string name="invalid_post_date">Invalid Date</string>
+
+    <!-- UI Elements for Create Post -->
+    <string name="create_post_title">New Post</string>
+    <string name="create_post_title_label">TITLE</string>
+    <string name="create_post_title_placeholder">Title</string>
+    <string name="create_post_content_label">CONTENT</string>
+    <string name="create_post_content_placeholder">Content</string>
+    <string name="btn_create_post_submit">ACCEPT</string>
+    <string name="btn_create_post_cancel">CANCEL</string>
 </resources>

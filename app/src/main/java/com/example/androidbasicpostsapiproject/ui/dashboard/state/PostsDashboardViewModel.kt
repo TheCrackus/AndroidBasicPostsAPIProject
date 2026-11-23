@@ -18,7 +18,7 @@ import kotlinx.coroutines.launch
  * @param getPostsUseCase Domain use case used to stream posts from the repository.
  */
 class PostsDashboardViewModel(
-    private val getPostsUseCase: GetPostsUseCase,
+    private val getPostsUseCase: GetPostsUseCase
 ) : BaseViewModel<PostsDashboardState, PostsDashboardEvent, PostsDashboardEffect>(
     initialState = PostsDashboardState()
 ) {
@@ -87,7 +87,7 @@ class PostsDashboardViewModel(
                                 baseData = BaseData(
                                     error = BaseError(
                                         errorTitle = result.errorTitle.orEmpty(),
-                                        errorBody = result.errorBody.orEmpty(),
+                                        errorBody = result.errorBody.orEmpty()
                                     )
                                 )
                             )

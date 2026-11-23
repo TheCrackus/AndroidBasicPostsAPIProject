@@ -34,7 +34,7 @@ class MainActivity : ComponentActivity() {
 
             PostsApp {
                 PostsNavHost(
-                    navHostController = navController,
+                    navHostController = navController
                 )
             }
         }
@@ -55,24 +55,24 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun PostsApp(
     modifier: Modifier = Modifier,
-    content: @Composable () -> Unit,
+    content: @Composable () -> Unit
 ) {
     AndroidBasicPostsAPIProjectTheme {
         BaseContainer(
             modifier = modifier.fillMaxSize(),
-            content = content,
+            content = content
         )
     }
 }
 
 @Preview(
     name = "Light",
-    showSystemUi = true,
+    showSystemUi = true
 )
 @Preview(
     name = "Dark",
     uiMode = Configuration.UI_MODE_NIGHT_YES,
-    showSystemUi = true,
+    showSystemUi = true
 )
 @Composable
 private fun PostsAppPreview() {
@@ -86,9 +86,9 @@ private fun PostsAppPreview() {
                         content = "This is the first post created in the system!",
                         imageUrl = null,
                         creator = Creator(
-                            name = "Edgar",
+                            name = "Edgar"
                         ),
-                        createdAt = "2026-11-18T10:00:00.000Z",
+                        createdAt = "2026-11-18T10:00:00.000Z"
                     ),
                     Post(
                         id = "2",
@@ -96,13 +96,13 @@ private fun PostsAppPreview() {
                         content = "Exploring the full potential of Android Jetpack Compose.",
                         imageUrl = null,
                         creator = Creator(
-                            name = "Admin",
+                            name = "Admin"
                         ),
-                        createdAt = "2026-11-19T15:30:00.000Z",
-                    ),
-                ),
+                        createdAt = "2026-11-19T15:30:00.000Z"
+                    )
+                )
             ),
-            onAction = {},
+            onAction = {}
         )
     }
 }

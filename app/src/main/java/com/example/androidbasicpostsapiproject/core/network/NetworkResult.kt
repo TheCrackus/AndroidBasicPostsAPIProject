@@ -47,5 +47,5 @@ sealed class NetworkResult<out T> {
 data class GenericApiErrorResponse(
     val message: String? = null,
     val error: String? = null,
-    val statusCode: Int? = null,
+    val statusCode: Int? = null
 )

@@ -27,23 +27,42 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.androidbasicpostsapiproject.R
+import com.example.androidbasicpostsapiproject.core.constants.BASE_EMPTY_STRING
+import com.example.androidbasicpostsapiproject.core.constants.BORDER_WIDTH_THIN
+import com.example.androidbasicpostsapiproject.core.constants.CORNER_RADIUS_EXTRA_SMALL
+import com.example.androidbasicpostsapiproject.core.constants.CORNER_RADIUS_SMALL
+import com.example.androidbasicpostsapiproject.core.constants.DASHBOARD_KEY_EMPTY_POSTS
+import com.example.androidbasicpostsapiproject.core.constants.DASHBOARD_KEY_NEW_POST_BUTTON
+import com.example.androidbasicpostsapiproject.core.constants.DASHBOARD_KEY_POST_FALLBACK_PREFIX
+import com.example.androidbasicpostsapiproject.core.constants.DASHBOARD_KEY_STATUS_SECTION
+import com.example.androidbasicpostsapiproject.core.constants.ELEVATION_MEDIUM
+import com.example.androidbasicpostsapiproject.core.constants.ELEVATION_SMALL
+import com.example.androidbasicpostsapiproject.core.constants.SPACING_COMPACT
+import com.example.androidbasicpostsapiproject.core.constants.SPACING_DEFAULT
+import com.example.androidbasicpostsapiproject.core.constants.SPACING_EXTRA_LARGE
+import com.example.androidbasicpostsapiproject.core.constants.SPACING_LARGE
+import com.example.androidbasicpostsapiproject.core.constants.SPACING_MEDIUM
+import com.example.androidbasicpostsapiproject.core.constants.SPACING_MEDIUM_SMALL
+import com.example.androidbasicpostsapiproject.core.constants.SPACING_SECTION
+import com.example.androidbasicpostsapiproject.core.constants.SPACING_SMALL
+import com.example.androidbasicpostsapiproject.core.constants.WEIGHT_FILL
 import com.example.androidbasicpostsapiproject.core.ui.screen.BaseScreenOverlay
 import com.example.androidbasicpostsapiproject.core.ui.screen.ObserveAsEvents
 import com.example.androidbasicpostsapiproject.core.utils.formatPostDate
 import com.example.androidbasicpostsapiproject.domain.model.Creator
 import com.example.androidbasicpostsapiproject.domain.model.Post
-import com.example.androidbasicpostsapiproject.ui.dashboard.state.PostsDashboardViewModel
 import com.example.androidbasicpostsapiproject.ui.dashboard.state.PostsDashboardEffect
 import com.example.androidbasicpostsapiproject.ui.dashboard.state.PostsDashboardEvent
 import com.example.androidbasicpostsapiproject.ui.dashboard.state.PostsDashboardState
+import com.example.androidbasicpostsapiproject.ui.dashboard.state.PostsDashboardViewModel
 import com.example.androidbasicpostsapiproject.ui.theme.AndroidBasicPostsAPIProjectTheme
 import org.koin.androidx.compose.koinViewModel
 
@@ -51,10 +70,15 @@ import org.koin.androidx.compose.koinViewModel
  * Stateful entry point for the posts dashboard destination.
  *
  * Obtains [PostsDashboardViewModel] via Koin, collects [PostsDashboardViewModel.uiState] with
- * lifecycle awareness, observes one-off navigation effects through [ObserveAsEvents], and
- * delegates rendering to the stateless [PostsDashboardScreen].
+ * lifecycle awareness, observes one-off navigation effects through [ObserveAsEvents], reacts to
+ * navigation refresh signals via [shouldRefreshPosts], and delegates rendering to the stateless
+ * [PostsDashboardScreen].
  *
  * @param viewModel Feature ViewModel scoped to this navigation destination.
+ * @param shouldRefreshPosts `true` when a child destination (e.g. Create Post) returned a result
+ * requesting a feed reload.
+ * @param onRefreshConsumed Callback invoked right after dispatching [PostsDashboardEvent.LoadPosts]
+ * so the navigation result flag is reset and will not re-trigger on configuration changes.
  * @param onNavigateToCreate Callback triggered when the user requests creating a new post.
  * @param onNavigateToDetail Callback triggered with the selected post ID to view its details.
  * @param onNavigateToEdit Callback triggered with the selected post ID to edit it.
@@ -62,11 +86,20 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun PostsDashboardRoot(
     viewModel: PostsDashboardViewModel = koinViewModel(),
+    shouldRefreshPosts: Boolean = false,
+    onRefreshConsumed: () -> Unit = {},
     onNavigateToCreate: () -> Unit = {},
     onNavigateToDetail: (String) -> Unit = {},
-    onNavigateToEdit: (String) -> Unit = {},
+    onNavigateToEdit: (String) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(key1 = shouldRefreshPosts) {
+        if (shouldRefreshPosts) {
+            viewModel.onAction(event = PostsDashboardEvent.LoadPosts)
+            onRefreshConsumed()
+        }
+    }
 
     ObserveAsEvents(
         flow = viewModel.uiEffects
@@ -114,11 +147,14 @@ fun PostsDashboardScreen(
             modifier = modifier
                 .fillMaxSize()
                 .background(color = MaterialTheme.colorScheme.background),
-            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp),
+            contentPadding = PaddingValues(
+                horizontal = SPACING_LARGE,
+                vertical = SPACING_EXTRA_LARGE
+            ),
+            verticalArrangement = Arrangement.spacedBy(space = SPACING_LARGE),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            item(key = "status_section") {
+            item(key = DASHBOARD_KEY_STATUS_SECTION) {
                 StatusUpdateSection(
                     statusText = uiState.statusText,
                     onStatusChange = {
@@ -136,7 +172,7 @@ fun PostsDashboardScreen(
                 )
             }
 
-            item(key = "new_post_button") {
+            item(key = DASHBOARD_KEY_NEW_POST_BUTTON) {
                 NewPostActionButton(
                     onClick = {
                         onAction(
@@ -147,7 +183,7 @@ fun PostsDashboardScreen(
             }
 
             if (uiState.posts.isEmpty() && !uiState.baseData.isLoading) {
-                item(key = "empty_posts_state") {
+                item(key = DASHBOARD_KEY_EMPTY_POSTS) {
                     EmptyPostsSection(
                         onReloadClick = {
                             onAction(
@@ -160,7 +196,7 @@ fun PostsDashboardScreen(
                 itemsIndexed(
                     items = uiState.posts,
                     key = { index, post ->
-                        post.id.ifBlank { "post_fallback_$index" }
+                        post.id.ifBlank { "$DASHBOARD_KEY_POST_FALLBACK_PREFIX$index" }
                     }
                 ) { _, post ->
                     PostItemCard(
@@ -203,7 +239,7 @@ private fun StatusUpdateSection(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp),
+            .padding(horizontal = SPACING_COMPACT),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -214,30 +250,30 @@ private fun StatusUpdateSection(
                 Text(
                     text = stringResource(id = R.string.status_placeholder),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodyMedium
                 )
             },
             singleLine = true,
-            shape = RoundedCornerShape(size = 2.dp),
+            shape = RoundedCornerShape(size = CORNER_RADIUS_EXTRA_SMALL),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = MaterialTheme.colorScheme.primary,
                 unfocusedBorderColor = MaterialTheme.colorScheme.outline,
                 focusedContainerColor = MaterialTheme.colorScheme.surface,
-                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface
             ),
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(weight = WEIGHT_FILL)
         )
 
-        Spacer(modifier = Modifier.width(12.dp))
+        Spacer(modifier = Modifier.width(width = SPACING_MEDIUM))
 
         TextButton(
             onClick = onUpdateClick,
-            shape = RoundedCornerShape(size = 2.dp)
+            shape = RoundedCornerShape(size = CORNER_RADIUS_EXTRA_SMALL)
         ) {
             Text(
                 text = stringResource(id = R.string.btn_update_status),
                 color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.labelLarge,
+                style = MaterialTheme.typography.labelLarge
             )
         }
     }
@@ -254,21 +290,24 @@ private fun NewPostActionButton(
     ) {
         Button(
             onClick = onClick,
-            shape = RoundedCornerShape(size = 2.dp),
+            shape = RoundedCornerShape(size = CORNER_RADIUS_EXTRA_SMALL),
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.secondary,
-                contentColor = MaterialTheme.colorScheme.onSecondary,
+                contentColor = MaterialTheme.colorScheme.onSecondary
             ),
             elevation = ButtonDefaults.buttonElevation(
-                defaultElevation = 2.dp,
-                pressedElevation = 4.dp
+                defaultElevation = ELEVATION_SMALL,
+                pressedElevation = ELEVATION_MEDIUM
             ),
-            contentPadding = PaddingValues(horizontal = 24.dp, vertical = 10.dp)
+            contentPadding = PaddingValues(
+                horizontal = SPACING_EXTRA_LARGE,
+                vertical = SPACING_MEDIUM_SMALL
+            )
         ) {
             Text(
                 text = stringResource(id = R.string.btn_new_post),
                 style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSecondary,
+                color = MaterialTheme.colorScheme.onSecondary
             )
         }
     }
@@ -285,19 +324,23 @@ private fun PostItemCard(
     val creatorName = post.creator?.name ?: stringResource(id = R.string.default_post_creator)
 
     val formattedDate = formatPostDate(dateString = post.createdAt)
+        ?: stringResource(id = R.string.invalid_post_date)
 
     OutlinedCard(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(size = 4.dp),
-        border = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.primary),
+        shape = RoundedCornerShape(size = CORNER_RADIUS_SMALL),
+        border = BorderStroke(
+            width = BORDER_WIDTH_THIN,
+            color = MaterialTheme.colorScheme.primary
+        ),
         colors = CardDefaults.outlinedCardColors(
-            containerColor = MaterialTheme.colorScheme.surface,
+            containerColor = MaterialTheme.colorScheme.surface
         )
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(all = 16.dp)
+                .padding(all = SPACING_DEFAULT)
         ) {
             Text(
                 text = stringResource(
@@ -306,18 +349,18 @@ private fun PostItemCard(
                     formattedDate
                 ),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                style = MaterialTheme.typography.bodySmall,
+                style = MaterialTheme.typography.bodySmall
             )
 
-            Spacer(modifier = Modifier.height(height = 10.dp))
+            Spacer(modifier = Modifier.height(height = SPACING_MEDIUM_SMALL))
 
             Text(
                 text = post.title,
                 color = MaterialTheme.colorScheme.onSurface,
-                style = MaterialTheme.typography.titleLarge,
+                style = MaterialTheme.typography.titleLarge
             )
 
-            Spacer(modifier = Modifier.height(height = 16.dp))
+            Spacer(modifier = Modifier.height(height = SPACING_DEFAULT))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -328,27 +371,27 @@ private fun PostItemCard(
                     Text(
                         text = stringResource(id = R.string.btn_view_post),
                         color = MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.labelMedium,
+                        style = MaterialTheme.typography.labelMedium
                     )
                 }
 
-                Spacer(modifier = Modifier.width(6.dp))
+                Spacer(modifier = Modifier.width(width = SPACING_SMALL))
 
                 TextButton(onClick = onEditClick) {
                     Text(
                         text = stringResource(id = R.string.btn_edit_post),
                         color = MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.labelMedium,
+                        style = MaterialTheme.typography.labelMedium
                     )
                 }
 
-                Spacer(modifier = Modifier.width(6.dp))
+                Spacer(modifier = Modifier.width(width = SPACING_SMALL))
 
                 TextButton(onClick = onDeleteClick) {
                     Text(
                         text = stringResource(id = R.string.btn_delete_post),
                         color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.labelMedium,
+                        style = MaterialTheme.typography.labelMedium
                     )
                 }
             }
@@ -364,27 +407,30 @@ private fun EmptyPostsSection(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 40.dp),
+            .padding(vertical = SPACING_SECTION),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
         Text(
             text = stringResource(id = R.string.empty_posts_message),
             style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(height = SPACING_MEDIUM))
 
         OutlinedButton(
             onClick = onReloadClick,
-            shape = RoundedCornerShape(size = 2.dp),
-            border = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.primary)
+            shape = RoundedCornerShape(size = CORNER_RADIUS_EXTRA_SMALL),
+            border = BorderStroke(
+                width = BORDER_WIDTH_THIN,
+                color = MaterialTheme.colorScheme.primary
+            )
         ) {
             Text(
                 text = stringResource(id = R.string.btn_reload_posts),
                 color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.labelLarge,
+                style = MaterialTheme.typography.labelLarge
             )
         }
     }
@@ -396,7 +442,7 @@ private fun PostsDashboardPreview() {
     AndroidBasicPostsAPIProjectTheme {
         PostsDashboardScreen(
             uiState = PostsDashboardState(
-                statusText = "",
+                statusText = BASE_EMPTY_STRING,
                 posts = listOf(
                     Post(
                         id = "1",
@@ -406,7 +452,7 @@ private fun PostsDashboardPreview() {
                         creator = Creator(
                             name = "Edgar"
                         ),
-                        createdAt = "Invalid Date"
+                        createdAt = BASE_EMPTY_STRING
                     ),
                     Post(
                         id = "2",
@@ -431,7 +477,7 @@ private fun PostsDashboardDarkPreview() {
     AndroidBasicPostsAPIProjectTheme(darkTheme = true) {
         PostsDashboardScreen(
             uiState = PostsDashboardState(
-                statusText = "",
+                statusText = BASE_EMPTY_STRING,
                 posts = listOf(
                     Post(
                         id = "1",
@@ -456,7 +502,7 @@ private fun PostsDashboardEmptyPreview() {
     AndroidBasicPostsAPIProjectTheme {
         PostsDashboardScreen(
             uiState = PostsDashboardState(
-                statusText = "",
+                statusText = BASE_EMPTY_STRING,
                 posts = emptyList()
             ),
             onAction = {}
