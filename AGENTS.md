@@ -110,15 +110,15 @@ com.example.androidbasicpostsapiproject/
 │   │   └── PostsNavHost.kt             # PostsNavHost con rutas tipadas (PostsDashboard y dialog<CreatePost>) y resultados vía SavedStateHandle (sin ViewModels)
 │   ├── create/
 │   │   ├── screen/
-│   │   │   └── CreatePostScreen.kt     # CreatePostRoot (Stateful) y CreatePostScreen (Stateless modal) + Previews Light/Dark
+│   │   │   └── CreatePostScreen.kt     # CreatePostRoot (Stateful) y CreatePostScreen (Stateless modal con ImagePickerSection) + Previews Light/Dark
 │   │   └── state/
-│   │       ├── CreatePostViewModel.kt  # Inyecta CreatePostUseCase, cancela submitJob solapados
+│   │       ├── CreatePostViewModel.kt  # Inyecta CreatePostUseCase, cancela submitJob solapados y expone BaseDialog de éxito
 │   │       ├── CreatePostState.kt      # CreatePostState(baseData, title, content, isSubmitEnabled) : BaseState
-│   │       ├── CreatePostEvent.kt      # OnTitleChange, OnContentChange, SubmitPost, DismissError, CancelClick : BaseEvent
+│   │       ├── CreatePostEvent.kt      # OnTitleChange, OnContentChange, SelectImageClick, SubmitPost, DismissError, DismissDialog, ConfirmSuccessDialog, CancelClick : BaseEvent
 │   │       └── CreatePostEffect.kt     # NavigateBack, NavigateBackWithSuccess : BaseEffect
 │   └── dashboard/
 │       ├── screen/
-│       │   └── PostsDashboardScreen.kt # PostsDashboardRoot (Stateful) y PostsDashboardScreen (Stateless) + Previews (Light, Dark, Empty)
+│       │   └── PostsDashboardScreen.kt # PostsDashboardRoot (Stateful con soporte shouldRefreshPosts) y PostsDashboardScreen (Stateless) + Previews (Light, Dark, Empty)
 │       └── state/
 │           ├── PostsDashboardViewModel.kt # Inyecta GetPostsUseCase, hereda de BaseViewModel, cancela fetchPostsJob solapados
 │           ├── PostsDashboardState.kt     # PostsDashboardState(baseData, posts, statusText) : BaseState
